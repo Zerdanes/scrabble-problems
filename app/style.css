@@ -707,7 +707,7 @@ button:active {
 /* ------------------------------------------------------------- panneau jeu */
 
 .panel {
-  width: 310px;
+  width: 260px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -791,7 +791,6 @@ button:active {
 /* ---------------------------------------------------------------- legende */
 
 .legend {
-  margin-top: auto;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(90, 70, 45, 0.18);
   border-radius: var(--radius);
@@ -877,22 +876,76 @@ button:active {
   box-shadow: inset 0 0 0 1.5px rgba(150, 96, 31, 0.55);
 }
 
+/* Colonne de gauche : miroir du panneau, pour que le plateau reste centré. */
+.side {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 0;
+}
+
+.hints-card {
+  background: #fdf4e0;
+  border: 1px solid rgba(179, 134, 30, 0.35);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.95rem;
+  box-shadow: var(--shadow);
+  animation: rise 0.2s ease-out;
+}
+
+.hints-card h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #8a6614;
+}
+
 .hints {
   list-style: none;
   margin: 0;
   padding: 0;
+  counter-reset: indice;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.6rem;
 }
 
 .hints li {
-  background: #fdf4e0;
-  border-left: 4px solid var(--gold);
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
-  font-size: 0.92rem;
-  line-height: 1.35;
+  counter-increment: indice;
+  position: relative;
+  padding-left: 1.9rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+/* Pastille numerotee : les indices sont progressifs, leur ordre compte. */
+.hints li::before {
+  content: counter(indice);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.hints li + li {
+  padding-top: 0.6rem;
+  border-top: 1px dashed rgba(179, 134, 30, 0.4);
+}
+
+.hints li + li::before {
+  top: 0.65em;
 }
 
 .attempts {
@@ -1239,8 +1292,18 @@ button.armed:hover {
     overflow-y: auto;
   }
 
-  .panel {
+  .panel,
+  .side {
     width: min(520px, 100%);
+  }
+
+  /* Empilé : le plateau d'abord, les repères en dernier. */
+  .board-area {
+    order: -2;
+  }
+
+  .panel {
+    order: -1;
   }
 
   :root {

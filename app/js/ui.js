@@ -48,6 +48,7 @@ const el = {
   currentScore: $('current-score'),
   message: $('message'),
   hints: $('hints'),
+  hintsCard: $('hints-card'),
   attempts: $('attempts'),
   loading: $('loading'),
   loadingText: $('loading-text'),
@@ -335,7 +336,9 @@ function fitBoard() {
   const header = document.querySelector('.game-head')?.offsetHeight ?? 64;
   const stacked = window.innerWidth <= 1080;
 
-  const byWidth = ((stacked ? window.innerWidth - 40 : window.innerWidth - 390) - 46) / 15.32;
+  // Hors empilement, la largeur se partage avec les deux colonnes de 260 px, les
+  // marges et les gouttieres : environ 610 px, plus 46 px de cadre et coordonnees.
+  const byWidth = ((stacked ? window.innerWidth - 40 : window.innerWidth - 610) - 46) / 15.32;
   const byHeight = stacked ? Infinity : (window.innerHeight - header - 120) / 16.54;
 
   const cell = Math.max(20, Math.min(44, Math.floor(Math.min(byWidth, byHeight))));
@@ -611,6 +614,7 @@ function openGame() {
   el.gameLevel.style.setProperty('--tone', meta.tone);
   el.gameTarget.textContent = puzzle.target;
   el.hints.innerHTML = '';
+  el.hintsCard.classList.add('hidden');
   for (let i = 0; i < (state.current.hintsUsed ?? 0); i++) addHintRow(puzzle.hints[i]);
 
   show('game');
@@ -754,6 +758,7 @@ function addHintRow(text) {
   const li = document.createElement('li');
   li.textContent = text;
   el.hints.appendChild(li);
+  el.hintsCard.classList.remove('hidden');
 }
 
 function useHint() {

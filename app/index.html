@@ -248,6 +248,28 @@
       </header>
 
       <main class="game-body">
+        <!-- Colonne de gauche : tout ce qui se consulte sans agir. Elle equilibre
+             le panneau de droite et evite que les indices fassent grandir
+             celui-ci jusqu'a le faire defiler. -->
+        <aside class="side">
+          <div class="hints-card hidden" id="hints-card">
+            <h3>💡 Indices</h3>
+            <ol class="hints" id="hints"></ol>
+          </div>
+
+          <div class="legend">
+            <h3>Repères</h3>
+            <ul>
+              <li><span class="chip tw">MT</span>mot compte triple</li>
+              <li><span class="chip dw">MD</span>mot compte double</li>
+              <li><span class="chip tl">LT</span>lettre compte triple</li>
+              <li><span class="chip dl">LD</span>lettre compte double</li>
+              <li><span class="chip sample pending-sample">E<i>1</i></span>vos lettres, pas encore validées</li>
+              <li><span class="chip sample joker-sample">E</span>joker : prend la lettre, vaut 0 point</li>
+            </ul>
+          </div>
+        </aside>
+
         <div class="board-area">
           <div class="board-frame">
             <div class="corner"></div>
@@ -278,21 +300,7 @@
             </div>
           </div>
 
-          <ul class="hints" id="hints"></ul>
-
           <div class="attempts" id="attempts"></div>
-
-          <div class="legend">
-            <h3>Repères</h3>
-            <ul>
-              <li><span class="chip tw">MT</span>mot compte triple</li>
-              <li><span class="chip dw">MD</span>mot compte double</li>
-              <li><span class="chip tl">LT</span>lettre compte triple</li>
-              <li><span class="chip dl">LD</span>lettre compte double</li>
-              <li><span class="chip sample pending-sample">E<i>1</i></span>vos lettres, pas encore validées</li>
-              <li><span class="chip sample joker-sample">E</span>joker : prend la lettre, vaut 0 point</li>
-            </ul>
-          </div>
         </aside>
       </main>
     </section>
