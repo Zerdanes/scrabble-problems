@@ -7,6 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "build-dict": "node build/build-dict.js",
-    "test": "node test/test.js"
+    "make-icon": "node build/make-icon.js",
+    "test": "node test/test.js",
+    "test-completude": "node test/completude.js 7"
   }
 }

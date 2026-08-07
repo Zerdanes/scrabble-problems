@@ -39,7 +39,13 @@ des tâches, c'est normal (c'est le moteur). Tout se ferme quand vous quittez.
 - `Scrabble (sans fenetre).vbs` fait la même chose sans aucune fenêtre noire.
   Si Windows bloque les fichiers `.vbs`, restez sur le `.bat`.
 - `creer-raccourci-bureau.ps1` (clic droit → Exécuter avec PowerShell) pose un
-  raccourci sur le Bureau. À lancer une seule fois.
+  raccourci sur le Bureau, avec l'icône du jeu. À lancer une seule fois.
+
+L'icône est un jeton de Scrabble dessiné par le programme
+(`build\make-icon.js`) : le tracé du **S** est obtenu par distance à deux arcs
+de cercle, ce qui donne un trait net de 16 à 256 px, et le chiffre est omis en
+dessous de 48 px où il ne serait qu'une bavure. PNG et ICO sont encodés à la
+main, sans bibliothèque.
 
 **Prérequis : [Node.js](https://nodejs.org) 18 ou plus.** Rien d'autre.
 
@@ -233,12 +239,26 @@ d'années.
 
 ```powershell
 node test\test.js          # tests du moteur + calibrage des 4 niveaux
+node test\completude.js 7  # le générateur oublie-t-il des coups ?
 node build\build-dict.js   # reconstruit les dictionnaires binaires
+node build\make-icon.js    # régénère app\icon.ico et app\icon.png
 ```
 
-Le test le plus utile rejoue chaque coup produit par le générateur dans le
-vérificateur de placement, écrit séparément, et exige le même score : une erreur
-de multiplicateur ne peut pas passer les deux (1 593 coups contrôlés).
+Deux vérifications se complètent :
+
+**`test.js`** rejoue chaque coup produit par le générateur dans le vérificateur
+de placement, écrit séparément, et exige le même score : une erreur de
+multiplicateur ne peut pas passer les deux (1 600 coups contrôlés).
+
+**`completude.js`** attaque le problème par l'autre bout. Il énumère les
+placements **sans jamais appeler le générateur** — toutes les directions, toutes
+les portions de ligne, tous les arrangements de jetons dans leurs cases vides —
+et exige qu'aucun ne dépasse l'objectif affiché. C'est ce qui garantit qu'il
+n'existe pas de coup meilleur que la « meilleure solution », ce que le premier
+test ne prouve pas. Mesuré : **23,8 millions de placements** sur 12 problèmes,
+la force brute retrouve exactement l'objectif à chaque fois. (Les tirages
+contenant un joker sont écartés de cette recherche : les 26 substitutions
+possibles la feraient exploser sans rien apprendre de neuf.)
 
 Pour retoucher la difficulté, tout est dans l'objet `LEVELS` en tête de
 `app\js\puzzle.js` (fourchette de score, nombre de jetons, longueur du mot,

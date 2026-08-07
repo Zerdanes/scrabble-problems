@@ -42,6 +42,8 @@ const MIME = {
   '.bin': 'application/octet-stream',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
 };
 
 fs.mkdirSync(DATA_DIR, { recursive: true });

@@ -10,7 +10,11 @@ $shortcut = $shell.CreateShortcut($link)
 $shortcut.TargetPath = $source
 $shortcut.WorkingDirectory = $PSScriptRoot
 $shortcut.Description = 'Entrainement au Scrabble : problemes, dictionnaire ODS'
-$shortcut.IconLocation = "$env:SystemRoot\System32\shell32.dll,137"
+
+$icon = Join-Path $PSScriptRoot 'app\icon.ico'
+if (-not (Test-Path $icon)) { node (Join-Path $PSScriptRoot 'build\make-icon.js') }
+if (Test-Path $icon) { $shortcut.IconLocation = "$icon,0" }
+
 $shortcut.Save()
 
 Write-Host "Raccourci cree : $link"
