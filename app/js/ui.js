@@ -59,6 +59,8 @@ const el = {
   overlayDict: $('overlay-dict'),
   dictInput: $('dict-input'),
   dictVerdict: $('dict-verdict'),
+  definition: $('definition'),
+  doneDefinition: $('done-definition'),
   dictResults: $('dict-results'),
   dictCount: $('dict-count'),
   overlayBlank: $('overlay-blank'),
@@ -616,6 +618,7 @@ function win(verdict) {
     <div><b>${verdict.score}</b>points</div>
     <div><b>${current.attempts}</b>essai${current.attempts > 1 ? 's' : ''}</div>`;
   el.overlayDone.classList.remove('hidden');
+  showDefinition(el.doneDefinition, verdict.words[0].word);
   setMessage('Bravo, c’était le meilleur coup !', 'good');
   save({ immediate: true });
 }
@@ -652,6 +655,7 @@ function giveUp() {
   }
 
   el.overlayDone.classList.remove('hidden');
+  showDefinition(el.doneDefinition, solution.word);
   renderBoard();
   save({ immediate: true });
 }
@@ -844,6 +848,44 @@ async function openHelp() {
 // -------------------------------------------------------------- dictionnaire
 
 let lookupTimer = null;
+let definitionToken = 0;
+
+/**
+ * Le sens d'un mot vient du Wiktionnaire, a la demande. Les mots deja consultes
+ * sont gardes en cache par le serveur et restent donc lisibles hors ligne ; les
+ * autres ne s'affichent tout simplement pas s'il n'y a pas de connexion.
+ */
+async function showDefinition(target, word) {
+  const token = ++definitionToken;
+  target.className = 'definition loading-def';
+  target.textContent = 'Recherche du sens…';
+  target.classList.remove('hidden');
+
+  let result;
+  try {
+    result = await fetch(`/api/define?mot=${encodeURIComponent(word)}`).then((r) => r.json());
+  } catch {
+    result = { ok: false };
+  }
+  if (token !== definitionToken) return;
+
+  if (!result.ok || !result.entries?.length) {
+    target.classList.add('hidden');
+    return;
+  }
+
+  target.className = 'definition';
+  target.innerHTML = result.entries
+    .map((entry) => {
+      const base = entry.base
+        ? `<div class="definition-base"><b>${entry.base.title}</b> — ${entry.base.text}</div>`
+        : '';
+      return `<div class="definition-entry">
+          <b>${entry.title}</b>${entry.kind ? ` <i>${entry.kind}</i>` : ''} — ${entry.text}${base}
+        </div>`;
+    })
+    .join('');
+}
 
 function openDictionary() {
   el.overlayDict.classList.remove('hidden');
@@ -865,6 +907,12 @@ async function runLookup() {
 
   const result = await call('lookup', { query });
   if (el.dictInput.value.trim().toUpperCase().replace(/[^A-Z?*]/g, '') !== result.query) return;
+
+  if (result.valid === true) showDefinition(el.definition, result.query);
+  else {
+    definitionToken++;
+    el.definition.classList.add('hidden');
+  }
 
   if (result.valid === null) {
     el.dictVerdict.classList.add('hidden');
@@ -893,6 +941,15 @@ async function runLookup() {
         .join('')}</div></div>`
     )
     .join('');
+
+  // Un clic sur un mot trouve le remet dans la recherche : c'est la facon la plus
+  // naturelle d'en demander le sens quand on parcourt une liste d'anagrammes.
+  for (const chip of el.dictResults.querySelectorAll('.words span')) {
+    chip.addEventListener('click', () => {
+      el.dictInput.value = chip.textContent;
+      runLookup();
+    });
+  }
 }
 
 // -------------------------------------------------------------------- clavier

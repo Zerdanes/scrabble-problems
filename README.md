@@ -9,7 +9,8 @@ tant que le maximum n'est pas atteint, le problème n'est pas résolu.
 
 Écrit pour mon grand-père, qui a fait un peu de compétition.
 
-- Dictionnaire **ODS9** complet (416 349 formes), consultable en pleine partie
+- Dictionnaire **ODS9** complet (416 349 formes), consultable en pleine partie,
+  avec les définitions du Wiktionnaire
 - Problèmes générés à l'infini sur quatre niveaux, calibrés automatiquement
 - Solveur exhaustif (Appel & Jacobson sur DAWG) : l'objectif affiché est
   réellement le maximum atteignable
@@ -99,7 +100,9 @@ mots de l'ODS restent jouables à tout moment, à tous les niveaux**. Aucun mot 
   - `BONJOUR` → le mot est-il valable ?
   - `C?AT` → un `?` remplace une lettre
   - `PORT*` → toutes les rallonges de PORT
-  - dans tous les cas, la liste des mots composables avec ces lettres.
+  - dans tous les cas, la liste des mots composables avec ces lettres, cliquables.
+- **Définitions** — pour tout mot valable, et pour le mot solution à la fin de
+  chaque problème. Voir plus bas.
 - **Voir la solution** — affiche le meilleur coup sur la grille, et les suivants.
   Demande une confirmation ; le problème ne comptera pas comme résolu.
 
@@ -146,6 +149,27 @@ lettres** : il s'appuie sur les lettres déjà présentes sur la grille. Poser
 J-U-S-T-I-C-E en n'utilisant que six jetons parce qu'un `S` traînait au bon
 endroit est un coup tout à fait ordinaire — c'est même l'un des exemples produits
 par le générateur. Un mot peut atteindre 15 lettres, la largeur du plateau.
+
+### Les définitions
+
+Le DAWG ne stocke que l'existence d'un mot, pas son sens — c'est ce qui lui
+permet de tenir en 420 Ko. Les définitions sont donc cherchées **à la demande**
+sur le Wiktionnaire, puis mises en cache dans `data\definitions.json` : un mot
+consulté une fois reste lisible hors ligne.
+
+Trois obstacles ont dicté l'implémentation (`build\definitions.js`) :
+
+1. **L'ODS écrit sans accent.** `ZEBRE` ne désigne aucune page. On cherche donc
+   toutes les graphies accentuées et on les renvoie toutes — `ZEBRE` donne à la
+   fois *zèbre* (le mammifère) et *zébré* (l'adjectif).
+2. **Une page contient plusieurs langues.** Sans isoler la section française,
+   `ZEBRE` renvoyait une étymologie… bretonne.
+3. **La plupart des formes sont fléchies.** `IMAMS` ne donne que « Pluriel de
+   imam » : on remonte au mot de base pour afficher « imam : guide de la
+   communauté dans la religion musulmane », qui est ce que le joueur cherchait.
+
+Mesuré sur un échantillon de mots de l'ODS, rares et fléchis compris :
+**14 sur 14**. Compter ~1 s à la première consultation, ~50 ms ensuite.
 
 ### Mettre à jour la liste de mots
 
@@ -263,6 +287,12 @@ depuis :
   fréquences du français d'après OpenSubtitles, MIT, © Hermit Dave. Sert
   uniquement à distinguer les mots courants des mots rares pour calibrer les
   niveaux ; ne décide jamais si un mot est autorisé.
+- **[Wiktionnaire](https://fr.wiktionary.org)** — définitions, interrogées à la
+  demande via l'API MediaWiki. Contenu sous licence
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr), ©
+  les contributeurs du Wiktionnaire. Rien n'est redistribué ici : les
+  définitions sont récupérées et mises en cache sur la machine de
+  l'utilisateur.
 
 *L'Officiel du jeu Scrabble* est une marque et une œuvre éditées par Larousse et
 la Fédération internationale de Scrabble francophone, sans lien avec ce projet.

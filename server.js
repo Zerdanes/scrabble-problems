@@ -23,6 +23,7 @@ import {
   decodeWordList,
 } from './build/wordsource.js';
 import { Dawg } from './app/js/dawg.js';
+import { defineWord } from './build/definitions.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(ROOT, 'app');
@@ -209,6 +210,46 @@ async function rollbackUpdate() {
   return { words: restored?.words ?? 0, source: restored?.source };
 }
 
+// ------------------------------------------------------------- definitions
+
+const DEFINITIONS_FILE = path.join(DATA_DIR, 'definitions.json');
+
+/**
+ * Cache des definitions deja consultees. Il grossit a l'usage : les mots regardes
+ * une fois restent lisibles sans connexion. C'est aussi ce qui evite de solliciter
+ * le Wiktionnaire pour rien.
+ */
+let definitions = null;
+let definitionsDirty = false;
+
+function loadDefinitions() {
+  if (definitions) return definitions;
+  try {
+    definitions = JSON.parse(fs.readFileSync(DEFINITIONS_FILE, 'utf8'));
+  } catch {
+    definitions = {};
+  }
+  return definitions;
+}
+
+// Ecriture groupee : une consultation de dictionnaire peut enchainer les mots.
+setInterval(() => {
+  if (!definitionsDirty) return;
+  definitionsDirty = false;
+  fsp.writeFile(DEFINITIONS_FILE, JSON.stringify(definitions), 'utf8').catch(() => {});
+}, 4000).unref();
+
+async function lookupDefinition(word) {
+  const key = word.trim().toUpperCase();
+  const cache = loadDefinitions();
+  if (cache[key]) return { ...cache[key], cached: true };
+
+  const result = await defineWord(key);
+  cache[key] = result;
+  definitionsDirty = true;
+  return { ...result, cached: false };
+}
+
 // ------------------------------------------------------------------ requetes
 
 function send(response, status, body, type = 'application/json; charset=utf-8') {
@@ -261,6 +302,16 @@ const server = http.createServer(async (request, response) => {
   // Mise a jour du dictionnaire : verifier, installer, revenir en arriere.
   // Aucune de ces routes ne s'execute d'elle-meme, c'est toujours le joueur qui
   // declenche depuis la page d'aide.
+  if (url.startsWith('/api/define')) {
+    const word = new URL(url, 'http://localhost').searchParams.get('mot') ?? '';
+    try {
+      return send(response, 200, JSON.stringify({ ok: true, ...(await lookupDefinition(word)) }));
+    } catch (error) {
+      // Hors ligne ou Wiktionnaire indisponible : ce n'est pas une panne du jeu.
+      return send(response, 200, JSON.stringify({ ok: false, word: word.toUpperCase(), error: error.message }));
+    }
+  }
+
   if (url === '/api/dict/status') {
     return send(
       response,

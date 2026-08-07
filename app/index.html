@@ -146,7 +146,21 @@
           </ul>
           <p>
             Dans tous les cas, il affiche aussi la liste des mots que l'on peut
-            composer avec ces lettres.
+            composer avec ces lettres. <b>Cliquez sur l'un d'eux</b> pour le
+            chercher à son tour.
+          </p>
+          <p>
+            Quand un mot est valable, l'application affiche son <b>sens</b>, et
+            remonte au mot de base s'il s'agit d'un pluriel ou d'une forme
+            conjuguée. Le sens du mot solution s'affiche aussi à la fin de chaque
+            problème.
+          </p>
+          <p class="help-note">
+            Les définitions viennent du Wiktionnaire et sont cherchées sur
+            internet au moment où vous les demandez. Chaque mot consulté est
+            gardé en mémoire : vous le reverrez ensuite sans connexion. Sans
+            internet, le reste du dictionnaire — dire si un mot est autorisé,
+            chercher des anagrammes — fonctionne normalement.
           </p>
         </article>
 
@@ -170,11 +184,10 @@
           <p class="help-note">
             C'est la liste officielle des mots admis au Scrabble francophone.
             Elle change tous les quatre ans environ. Au démarrage, l'application
-            regarde s'il en existe une plus récente : <b>c'est la seule fois où
-            elle utilise internet</b>, et tout le reste — le jeu, le dictionnaire
-            — fonctionne sans connexion. Rien n'est jamais installé sans que vous
-            cliquiez, et l'ancienne liste est conservée pour pouvoir revenir en
-            arrière.
+            regarde s'il en existe une plus récente. Le jeu lui-même — les
+            problèmes, la validation des coups, les anagrammes — n'a jamais
+            besoin d'internet. Rien n'est installé sans que vous cliquiez, et
+            l'ancienne liste est conservée pour pouvoir revenir en arrière.
           </p>
           <div class="dict-state" id="dict-state"></div>
           <div class="dict-buttons">
@@ -239,6 +252,7 @@
         <div class="dialog-icon" id="done-icon">🏆</div>
         <h2 id="done-title">Trouvé !</h2>
         <p id="done-text"></p>
+        <div class="definition hidden" id="done-definition"></div>
         <div class="done-stats" id="done-stats"></div>
         <div class="dialog-actions">
           <button class="primary" id="btn-again">Nouveau problème</button>
@@ -269,6 +283,7 @@
         </p>
 
         <div class="verdict hidden" id="dict-verdict"></div>
+        <div class="definition hidden" id="definition"></div>
         <div class="dict-results" id="dict-results"></div>
       </div>
     </div>
