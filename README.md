@@ -33,17 +33,32 @@ des mots et construit son dictionnaire (une minute, connexion requise — voir
 « Les mots ne sont pas dans ce dépôt » plus bas). Ensuite, tout fonctionne hors
 ligne.
 
-Une fenêtre de jeu s'ouvre ; une petite fenêtre noire reste réduite dans la barre
-des tâches, c'est normal (c'est le moteur). Tout se ferme quand vous quittez.
+**Une seule fenêtre s'ouvre** : celle du jeu. Le moteur tourne sans fenêtre et
+s'arrête tout seul quand vous quittez.
 
-Relancer `Scrabble.bat` alors que le jeu tourne déjà **ne démarre pas un second
-moteur** : la fenêtre existante est ramenée au premier plan. Sans ce garde-fou,
-deux instances écriraient tour à tour dans la même sauvegarde.
+Relancer le jeu alors qu'il tourne déjà **ne démarre pas un second moteur** : la
+fenêtre existante est ramenée au premier plan. Sans ce garde-fou, deux instances
+écriraient tour à tour dans la même sauvegarde.
 
-- `Scrabble (sans fenetre).vbs` fait la même chose sans aucune fenêtre noire.
-  Si Windows bloque les fichiers `.vbs`, restez sur le `.bat`.
-- `creer-raccourci-bureau.ps1` (clic droit → Exécuter avec PowerShell) pose un
-  raccourci sur le Bureau, avec l'icône du jeu. À lancer une seule fois.
+### Quel fichier lancer ?
+
+| Fichier | À quoi il sert |
+|---|---|
+| **`Scrabble.bat`** | **Le lanceur.** Vérifie Node.js, construit le dictionnaire au premier lancement, démarre le moteur sans console. Bref clignotement noir au démarrage. |
+| `Scrabble (sans fenetre noire).vbs` | Exactement la même chose, sans le clignotement. Il ne fait que lancer le `.bat` en mode caché. Si Windows bloque les `.vbs`, restez sur le `.bat`. |
+| `creer-raccourci-bureau.ps1` | **À lancer une seule fois** (clic droit → Exécuter avec PowerShell). Pose un raccourci sur le Bureau, avec l'icône du jeu. Ce n'est pas un lanceur. |
+
+### L'icône dans la barre des tâches
+
+Le raccourci du Bureau porte bien l'icône du jeu. En revanche la fenêtre ouverte
+par `--app=` reste, pour Windows, **une fenêtre d'Edge** : elle hérite donc de
+l'icône d'Edge dans la barre des tâches. C'est une limite du mode application de
+Chromium, pas un réglage oublié.
+
+Pour une vraie entrée indépendante, avec l'icône du jeton : dans la fenêtre du
+jeu, **menu `…` → Applications → Installer ce site en tant qu'application**. Le
+manifeste (`app\manifest.webmanifest`) fournit le nom et les icônes ; Windows
+crée alors une entrée Menu Démarrer épinglable, séparée d'Edge.
 
 L'icône est un jeton de Scrabble dessiné par le programme
 (`build\make-icon.js`) : le tracé du **S** est obtenu par distance à deux arcs

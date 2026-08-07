@@ -10,6 +10,7 @@ $shortcut = $shell.CreateShortcut($link)
 $shortcut.TargetPath = $source
 $shortcut.WorkingDirectory = $PSScriptRoot
 $shortcut.Description = 'Entrainement au Scrabble : problemes, dictionnaire ODS'
+$shortcut.WindowStyle = 7   # reduit : evite meme le bref clignotement de la console
 
 $icon = Join-Path $PSScriptRoot 'app\icon.ico'
 if (-not (Test-Path $icon)) { node (Join-Path $PSScriptRoot 'build\make-icon.js') }

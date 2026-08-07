@@ -1,6 +1,6 @@
 @echo off
-rem Lance le jeu. La fenetre noire se reduit toute seule dans la barre des taches
-rem et se ferme quand on quitte le jeu.
+rem Lance le jeu. Une seule fenetre s'ouvre : celle du jeu.
+rem Le moteur tourne sans fenetre, il s'arrete tout seul quand on quitte.
 cd /d "%~dp0"
 
 where node >nul 2>nul
@@ -29,5 +29,7 @@ if not exist "app\data\dict.bin" (
   )
 )
 
-start "Scrabble - Le Defi" /min cmd /c node server.js
+rem Le moteur est demarre sans console : sans cela une fenetre noire resterait
+rem dans la barre des taches a cote de celle du jeu.
+powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath 'node' -ArgumentList 'server.js' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
 exit

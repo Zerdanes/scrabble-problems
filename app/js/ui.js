@@ -114,8 +114,73 @@ const placedTiles = () => state.current?.placed ?? [];
 
 // ------------------------------------------------------------ sauvegarde
 
+/**
+ * Deux fenetres du jeu ouvertes en meme temps feraient tourner deux chronometres
+ * et ecriraient tour a tour la meme sauvegarde. La plus recente se met donc en
+ * retrait : elle n'affiche rien, ne compte rien, n'enregistre rien.
+ */
+/**
+ * Identifiant propre a cette fenetre. Il doit survivre au rechargement : sinon
+ * une fenetre qui reprend la main puis se recharge se presente au serveur sous
+ * un nouveau nom, et se retrouve aussitot renvoyee en veille. sessionStorage est
+ * exactement cela — propre a l'onglet, conserve d'un rechargement a l'autre.
+ */
+const sessionId = (() => {
+  const existing = sessionStorage.getItem('scrabble-session');
+  if (existing) return existing;
+  const created = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  sessionStorage.setItem('scrabble-session', created);
+  return created;
+})();
+
+let duplicate = false;
+
+/** Battement de coeur : sert aussi a savoir si c'est nous qui avons la main. */
+async function heartbeat({ force = false } = {}) {
+  try {
+    const response = await fetch(`/api/ping?id=${sessionId}${force ? '&force=1' : ''}`, { method: 'POST' });
+    const { active } = await response.json();
+    if (!active && !duplicate) becomeDuplicate();
+    else if (active && duplicate) location.reload(); // l'autre fenetre a laché la main
+    return active;
+  } catch {
+    return !duplicate; // serveur injoignable : on ne change rien
+  }
+}
+
+function becomeDuplicate() {
+  duplicate = true;
+  stopTimer();
+
+  document.body.innerHTML = `
+    <div class="duplicate">
+      <div class="dialog">
+        <div class="dialog-icon">🪟</div>
+        <h2>Le jeu est déjà ouvert</h2>
+        <p>
+          Une autre fenêtre du jeu est ouverte sur cet ordinateur. Pour ne pas
+          fausser votre chronomètre, celle-ci reste en veille.
+        </p>
+        <div class="dialog-actions">
+          <button class="primary" id="btn-take-over">Jouer dans cette fenêtre</button>
+        </div>
+        <p class="duplicate-note">
+          L'autre fenêtre passera alors en veille à son tour. Vous ne perdez rien :
+          la partie est enregistrée en permanence. Si l'autre fenêtre a été fermée,
+          celle-ci reprendra la main toute seule en une vingtaine de secondes.
+        </p>
+      </div>
+    </div>`;
+
+  document.getElementById('btn-take-over').addEventListener('click', async () => {
+    await heartbeat({ force: true });
+    location.reload();
+  });
+}
+
 let saveTimer = null;
 function save({ immediate = false } = {}) {
+  if (duplicate) return;
   clearTimeout(saveTimer);
   const send = () => {
     const body = JSON.stringify(state);
@@ -1100,11 +1165,20 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pagehide', () => save({ immediate: true }));
 
-setInterval(() => fetch('/api/ping', { method: 'POST' }).catch(() => {}), 10000);
+// Assez frequent pour que le serveur ne croie jamais la fenetre abandonnee, et
+// pour qu'une fenetre en veille reprenne vite la main si l'autre a ete fermee.
+setInterval(heartbeat, 6000);
 
 // ------------------------------------------------------------------ demarrage
 
 (async function boot() {
+  // Avant tout : est-ce a nous de jouer ? Inutile de charger le dictionnaire
+  // pour une fenetre qui restera en veille.
+  if (!(await heartbeat())) {
+    el.loading.classList.add('hidden');
+    return;
+  }
+
   buildBoard();
   buildAlphabet();
   await Promise.all([restore(), call('init'), loadManifest()]);

@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scrabble — Le Défi</title>
     <link rel="stylesheet" href="style.css" />
-    <!-- L'icone de la fenetre et de la barre des taches vient de la : en mode
-         application, Edge reprend le favicon de la page. -->
-    <link rel="icon" type="image/png" sizes="256x256" href="icon.png" />
+    <!-- L'icone de la fenetre vient de la. Windows et Edge choisissent la taille
+         la plus proche de ce dont ils ont besoin : les proposer separement evite
+         qu'ils reduisent le 256 et le rendent flou. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="icons/icon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
     <link rel="icon" type="image/x-icon" href="icon.ico" />
-    <link rel="apple-touch-icon" href="icon.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <!-- Permet d'installer le jeu comme une vraie application Windows, qui a
+         alors sa propre entree dans la barre des taches, avec cette icone. -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#7a5230" />
   </head>
   <body>
     <!-- ------------------------------------------------------------ Accueil -->

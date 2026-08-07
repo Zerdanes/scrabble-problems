@@ -44,6 +44,7 @@ const MIME = {
   '.ico': 'image/x-icon',
   '.png': 'image/png',
   '.webp': 'image/webp',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -276,6 +277,32 @@ async function serveStatic(url, response) {
 
 let lastPing = 0;
 
+/**
+ * Une seule fenetre a la main.
+ *
+ * Deux fenetres ouvertes sur le jeu feraient tourner deux chronometres et
+ * ecriraient tour a tour la meme sauvegarde. L'arbitrage est fait ici, et non
+ * entre les fenetres : un onglet mis en arriere-plan par Windows voit ses
+ * minuteries ralenties et ses messages retardes, il ne peut pas arbitrer de
+ * facon fiable.
+ *
+ * La fenetre active se signale par ses battements. Si elle se tait plus de
+ * SESSION_TTL (fermeture, plantage, mise en veille de la machine), la premiere
+ * fenetre qui bat reprend la main d'elle-meme : rien ne reste bloque.
+ */
+const SESSION_TTL = 25_000;
+let session = { id: null, lastSeen: 0 };
+
+function claimSession(id, { force = false } = {}) {
+  const now = Date.now();
+  const abandoned = now - session.lastSeen > SESSION_TTL;
+  if (force || !session.id || abandoned || session.id === id) {
+    session = { id, lastSeen: now };
+    return { active: true };
+  }
+  return { active: false };
+}
+
 const server = http.createServer(async (request, response) => {
   const { url, method } = request;
 
@@ -296,9 +323,12 @@ const server = http.createServer(async (request, response) => {
     }
   }
 
-  if (url === '/api/ping') {
+  if (url.startsWith('/api/ping')) {
     lastPing = Date.now();
-    return send(response, 200, '{"ok":true}');
+    const params = new URL(url, 'http://localhost').searchParams;
+    const id = params.get('id') ?? '';
+    const state = claimSession(id, { force: params.get('force') === '1' });
+    return send(response, 200, JSON.stringify({ ok: true, ...state }));
   }
 
   // Mise a jour du dictionnaire : verifier, installer, revenir en arriere.

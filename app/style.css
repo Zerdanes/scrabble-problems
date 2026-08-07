@@ -1178,6 +1178,20 @@ button.armed:hover {
   animation: rise 0.18s ease-out;
 }
 
+.duplicate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--parchment);
+}
+
+.duplicate-note {
+  font-size: 0.88rem;
+  margin: 1rem 0 0 !important;
+}
+
 /* -------------------------------------------------------------- chargement */
 
 .loading {

@@ -18,7 +18,15 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const OUT_DIR = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), 'app');
+const ICONS_DIR = path.join(OUT_DIR, 'icons');
 const SIZES = [16, 24, 32, 48, 64, 128, 256];
+
+/**
+ * Tailles exposees separement en PNG. Windows et Edge ne piochent pas dans le
+ * .ico pour l'icone de fenetre : ils prennent le favicon a la taille demandee,
+ * et le manifeste d'application reclame du 192 et du 512.
+ */
+const PNG_SIZES = [32, 48, 192, 512];
 const SUPERSAMPLE = 4;
 
 // Couleurs du jeton, reprises de la feuille de style.
@@ -242,10 +250,16 @@ function encodeIco(images) {
 
 const images = SIZES.map((size) => ({ size, data: encodePng(renderTile(size), size) }));
 
-fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.mkdirSync(ICONS_DIR, { recursive: true });
 fs.writeFileSync(path.join(OUT_DIR, 'icon.ico'), encodeIco(images));
 fs.writeFileSync(path.join(OUT_DIR, 'icon.png'), images.find((image) => image.size === 256).data);
 
 const ico = fs.statSync(path.join(OUT_DIR, 'icon.ico'));
-console.log(`icon.ico  ${SIZES.join(', ')} px  ${(ico.size / 1024).toFixed(1)} Ko`);
-console.log(`icon.png  256 px  ${(images.at(-1).data.length / 1024).toFixed(1)} Ko`);
+console.log(`icon.ico        ${SIZES.join(', ')} px  ${(ico.size / 1024).toFixed(1)} Ko`);
+console.log(`icon.png        256 px`);
+
+for (const size of PNG_SIZES) {
+  const data = encodePng(renderTile(size), size);
+  fs.writeFileSync(path.join(ICONS_DIR, `icon-${size}.png`), data);
+  console.log(`icons/icon-${String(size).padEnd(3)}  ${String(size).padStart(3)} px  ${(data.length / 1024).toFixed(1)} Ko`);
+}
