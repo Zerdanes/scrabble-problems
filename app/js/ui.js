@@ -324,25 +324,50 @@ function renderHome() {
 
 // -------------------------------------------------------------- le plateau
 
+const MIN_CELL = 20;
+const MAX_CELL = 64;
+
 /**
- * Taille d'une case, calculee plutot qu'estimee en CSS : la grille, les
- * coordonnees et le chevalet doivent tenir dans la fenetre sans jamais obliger
- * a faire defiler pour voir ses propres lettres.
+ * Taille d'une case : la plus grande qui tienne encore dans la fenetre.
  *
- * Hauteur occupee = en-tete + marges + (15 cases + coordonnees) + chevalet,
- * soit environ 16,5 fois la case plus une constante.
+ * On la mesure au lieu de la calculer. Une formule a constantes ("l'en-tete fait
+ * tant, les marges tant") redevient fausse a la premiere retouche de style, et
+ * se traduit alors soit par un chevalet coupe, soit par un plateau plus petit
+ * que necessaire. Ici on essaie une taille, on regarde si ca deborde, et on
+ * recommence — sept essais suffisent a trouver le maximum au pixel pres.
  */
 function fitBoard() {
-  const header = document.querySelector('.game-head')?.offsetHeight ?? 64;
-  const stacked = window.innerWidth <= 1080;
+  const root = document.documentElement;
+  const body = document.querySelector('.game-body');
+  const rack = document.querySelector('.rack');
+  if (!body || !rack) return;
 
-  // Hors empilement, la largeur se partage avec les deux colonnes de 260 px, les
-  // marges et les gouttieres : environ 610 px, plus 46 px de cadre et coordonnees.
-  const byWidth = ((stacked ? window.innerWidth - 40 : window.innerWidth - 610) - 46) / 15.32;
-  const byHeight = stacked ? Infinity : (window.innerHeight - header - 120) / 16.54;
+  if (window.innerWidth <= 1080) {
+    // Empile : la page defile verticalement, seule la largeur contraint.
+    const wide = Math.floor((window.innerWidth - 86) / 15.32);
+    root.style.setProperty('--cell', `${Math.max(MIN_CELL, Math.min(MAX_CELL, wide))}px`);
+    return;
+  }
 
-  const cell = Math.max(20, Math.min(44, Math.floor(Math.min(byWidth, byHeight))));
-  document.documentElement.style.setProperty('--cell', `${cell}px`);
+  const fits = () =>
+    rack.getBoundingClientRect().bottom <= window.innerHeight - 2 &&
+    body.scrollWidth <= body.clientWidth;
+
+  let low = MIN_CELL;
+  let high = MAX_CELL;
+  let best = MIN_CELL;
+
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    root.style.setProperty('--cell', `${middle}px`);
+    if (fits()) {
+      best = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+  root.style.setProperty('--cell', `${best}px`);
 }
 
 function buildBoard() {
@@ -618,9 +643,11 @@ function openGame() {
   for (let i = 0; i < (state.current.hintsUsed ?? 0); i++) addHintRow(puzzle.hints[i]);
 
   show('game');
-  fitBoard();
+  // La mesure doit venir apres le rendu : un chevalet encore vide n'a pas sa
+  // hauteur definitive, et la case serait calculee trop grande.
   renderBoard();
   renderRack();
+  fitBoard();
   updatePreview();
   renderAttempts();
   el.timer.textContent = formatTime(state.current.elapsed);

@@ -260,6 +260,13 @@ meilleur coup. Sinon, on retire un autre tirage.
 D'où deux propriétés utiles : la grille ressemble toujours à une vraie partie, et
 l'objectif affiché est réellement le maximum atteignable.
 
+La taille du plateau n'est pas fixée en CSS : au chargement et à chaque
+redimensionnement, `fitBoard()` cherche par dichotomie la plus grande case qui
+tienne encore dans la fenêtre, en **mesurant** le débordement réel plutôt qu'en
+appliquant une formule à constantes. Une formule redevient fausse à la première
+retouche de style — et se traduit alors soit par un chevalet coupé, soit par un
+plateau inutilement petit.
+
 Comptez 70 à 260 ms par problème selon le niveau (Facile est le plus lent : ses
 contraintes sont les plus serrées, donc il faut plus d'essais). Le solveur tourne
 dans un *worker*, l'interface ne se fige jamais.
