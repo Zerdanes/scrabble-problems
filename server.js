@@ -11,7 +11,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { buildDictionaries } from './build/build-dict.js';
@@ -415,8 +415,57 @@ const BROWSERS = [
   'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
 ];
 
+/**
+ * Le jeu a-t-il ete installe comme application (menu Edge > Applications >
+ * Installer ce site) ? Windows cree alors un raccourci dans le menu Demarrer,
+ * qui porte l'identite de l'application : c'est ce qui donne une entree propre
+ * dans la barre des taches, avec notre icone, au lieu de celle d'Edge.
+ *
+ * On preferera toujours lancer ce raccourci : lui seul a la bonne identite.
+ * Une fenetre ouverte avec --app= reste, pour Windows, une fenetre d'Edge.
+ */
+function findInstalledShortcut() {
+  const script = `
+$ErrorActionPreference = 'SilentlyContinue'
+$shell = New-Object -ComObject WScript.Shell
+$roots = @(
+  (Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs'),
+  (Join-Path $env:ProgramData 'Microsoft\\Windows\\Start Menu\\Programs')
+)
+foreach ($root in $roots) {
+  if (-not (Test-Path $root)) { continue }
+  Get-ChildItem $root -Filter *.lnk -Recurse | ForEach-Object {
+    $link = $shell.CreateShortcut($_.FullName)
+    if ($link.TargetPath -like '*msedge.exe' -and $link.Arguments -like '*--app-id=*' -and $_.BaseName -like '*Scrabble*') {
+      Write-Output $_.FullName
+    }
+  }
+}`;
+
+  try {
+    const found = execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', script], {
+      encoding: 'utf8',
+      timeout: 6000,
+      windowsHide: true,
+    })
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    return found[0] ?? null;
+  } catch {
+    return null; // pas de PowerShell, pas de raccourci : on retombe sur --app=
+  }
+}
+
 /** Fenetre sans barre d'adresse ni onglets : on veut que ca ressemble a un logiciel. */
 function openWindow(url) {
+  const installed = findInstalledShortcut();
+  if (installed) {
+    console.log('  Application installee detectee : ouverture avec son icone.');
+    spawn('cmd', ['/c', 'start', '""', installed], { detached: true, stdio: 'ignore' }).unref();
+    return;
+  }
+
   const browser = BROWSERS.find((candidate) => fs.existsSync(candidate));
   if (browser) {
     spawn(browser, [`--app=${url}`, '--window-size=1280,860'], { detached: true, stdio: 'ignore' }).unref();

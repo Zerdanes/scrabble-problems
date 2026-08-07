@@ -74,7 +74,32 @@ const el = {
   btnCheck: $('btn-dict-check'),
   btnApply: $('btn-dict-apply'),
   btnRollback: $('btn-dict-rollback'),
+  installBanner: $('install-banner'),
 };
+
+/**
+ * Installation en tant qu'application Windows.
+ *
+ * C'est ce qui donne au jeu sa propre entree dans la barre des taches, avec son
+ * icone : une fenetre ouverte en mode application reste sinon, pour Windows, une
+ * fenetre du navigateur, et en porte l'icone. Le navigateur previent quand
+ * l'installation est possible ; on garde alors sa proposition sous le coude pour
+ * la declencher depuis un bouton, plutot que d'envoyer le joueur fouiller les
+ * menus du navigateur.
+ */
+let installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  el.installBanner.classList.remove('hidden');
+});
+
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  el.installBanner.classList.add('hidden');
+  notify("C'est fait. Fermez cette fenêtre et lancez le jeu depuis sa nouvelle icône.");
+});
 
 // ------------------------------------------------------------------- worker
 
@@ -1124,6 +1149,18 @@ $('btn-help-back').addEventListener('click', () => {
   show('home');
 });
 $('update-banner').addEventListener('click', openHelp);
+el.installBanner.addEventListener('click', async () => {
+  if (!installPrompt) return;
+  const prompt = installPrompt;
+  installPrompt = null;
+  el.installBanner.classList.add('hidden');
+  await prompt.prompt();
+  const { outcome } = await prompt.userChoice;
+  if (outcome !== 'accepted') {
+    installPrompt = prompt; // refus : on reproposera
+    el.installBanner.classList.remove('hidden');
+  }
+});
 el.btnCheck.addEventListener('click', () => checkDictionary({ silent: false }));
 el.btnApply.addEventListener('click', (event) =>
   armConfirm(event.currentTarget, 'Confirmer l’installation', applyDictionary)

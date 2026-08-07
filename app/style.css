@@ -262,6 +262,15 @@ button:active {
   max-width: 100%;
 }
 
+.update-banner.install {
+  background: #e7f5ef;
+  border-color: var(--green);
+}
+
+.update-banner.install .update-title {
+  color: var(--green-dark);
+}
+
 .update-title {
   font-weight: 700;
   color: #8a6614;

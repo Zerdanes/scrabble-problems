@@ -58,15 +58,26 @@ commande à taper.
 
 ### L'icône dans la barre des tâches
 
-Le raccourci du Bureau porte bien l'icône du jeu. En revanche la fenêtre ouverte
-par `--app=` reste, pour Windows, **une fenêtre d'Edge** : elle hérite donc de
-l'icône d'Edge dans la barre des tâches. C'est une limite du mode application de
-Chromium, pas un réglage oublié.
+Une fenêtre ouverte par `--app=` reste, pour Windows, **une fenêtre d'Edge** :
+elle en hérite l'icône. C'est l'`AppUserModelID` qui décide, et aucune option de
+ligne de commande ne le change. Seule une application *installée* obtient le sien.
 
-Pour une vraie entrée indépendante, avec l'icône du jeton : dans la fenêtre du
-jeu, **menu `…` → Applications → Installer ce site en tant qu'application**. Le
-manifeste (`app\manifest.webmanifest`) fournit le nom et les icônes ; Windows
-crée alors une entrée Menu Démarrer épinglable, séparée d'Edge.
+D'où la marche à suivre, en **une seule fois par ordinateur** :
+
+1. Lancer le jeu. Un bandeau vert s'affiche sur l'accueil :
+   **« 📌 Ajouter le jeu à la barre des tâches »**. Cliquer dessus, puis
+   confirmer dans la fenêtre d'Edge.
+2. C'est tout. Windows crée une entrée dédiée, épinglable, avec l'icône du jeton.
+
+Aux lancements suivants, `server.js` **cherche le raccourci créé par cette
+installation** dans le menu Démarrer et l'ouvre à la place d'une fenêtre `--app=`
+(`findInstalledShortcut()`). L'icône est donc correcte à chaque démarrage, sans
+que le joueur ait à y penser. S'il n'y a pas d'installation, le comportement
+précédent s'applique — rien ne casse.
+
+Le bandeau n'apparaît que si le navigateur juge l'application installable
+(manifeste, icônes 192 et 512, `display: standalone`) et disparaît une fois
+l'installation faite.
 
 L'icône est un jeton de Scrabble dessiné par le programme
 (`build\make-icon.js`) : le tracé du **S** est obtenu par distance à deux arcs
