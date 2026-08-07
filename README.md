@@ -21,8 +21,8 @@ tant que le maximum n'est pas atteint, le problème n'est pas résolu.
 ## Installer
 
 ```
-git clone https://github.com/<votre-compte>/scrabble-defi.git
-cd scrabble-defi
+git clone https://github.com/Zerdanes/scrabble-problems.git
+cd scrabble-problems
 ```
 
 Puis double-cliquez sur **`Scrabble.bat`**.
