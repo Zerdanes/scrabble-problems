@@ -93,9 +93,14 @@ Cliquer dessus donne `ERR_CONNECTION_REFUSED`. Comme son nom ressemble au nôtre
 l'erreur est facile à commettre.
 
 `Creer le raccourci sur le Bureau.bat` s'en occupe : il repose le bon raccourci
-et **écarte celui du navigateur** dans `raccourcis-ecartes\`. Il n'est pas
-supprimé, car c'est lui qui porte l'identité de l'application installée : le
+et **écarte celui du navigateur** dans `%LOCALAPPDATA%\ScrabbleDefi\`. Il n'est
+pas supprimé, car c'est lui qui porte l'identité de l'application installée : le
 serveur va l'y chercher pour ouvrir la fenêtre avec la bonne icône.
+
+Il est rangé **hors du dossier du jeu**, et pas dedans : il ne vaut que pour ce
+profil Windows et cette machine, alors que le dossier est fait pour être copié
+ailleurs. Le dossier ne contient donc aucun `.lnk`, et reste transportable tel
+quel.
 
 **Le seul point d'entrée est donc l'icône du Bureau.** Épingler l'application
 installée à la barre des tâches et cliquer dessus moteur éteint redonnerait la

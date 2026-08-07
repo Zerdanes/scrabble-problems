@@ -38,14 +38,16 @@ foreach ($suspect in $suspects) {
   $cible = $shell.CreateShortcut($suspect.FullName)
   if ($cible.TargetPath -notlike '*msedge*.exe') { continue }
 
-  $corbeille = Join-Path $racine 'raccourcis-ecartes'
-  New-Item -ItemType Directory -Force -Path $corbeille | Out-Null
-  Move-Item $suspect.FullName (Join-Path $corbeille $suspect.Name) -Force
+  # Range hors du dossier du jeu : ce raccourci ne vaut que pour ce profil et
+  # cette machine, alors que le dossier est fait pour etre copie ailleurs.
+  $garde = Join-Path $env:LOCALAPPDATA 'ScrabbleDefi'
+  New-Item -ItemType Directory -Force -Path $garde | Out-Null
+  Move-Item $suspect.FullName (Join-Path $garde $suspect.Name) -Force
   Write-Host ''
   Write-Host "  Ecarte : $($suspect.Name)"
   Write-Host '    Ce raccourci avait ete cree par le navigateur. Il ouvrait la'
   Write-Host '    fenetre sans demarrer le moteur du jeu, donc une page d''erreur.'
-  Write-Host "    Il est range dans $corbeille, rien n'est perdu."
+  Write-Host "    Il est range dans $garde, rien n'est perdu."
 }
 
 Write-Host ''

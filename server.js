@@ -460,9 +460,11 @@ $roots = @(
   (Join-Path $env:ProgramData 'Microsoft\\Windows\\Start Menu\\Programs'),
   [Environment]::GetFolderPath('Desktop'),
   # Le raccourci pose par le navigateur est ecarte du Bureau, ou il ouvrait une
-  # page d'erreur, mais conserve ici : il porte l'identite de l'application
-  # installee, donc son icone dans la barre des taches.
-  '${path.join(ROOT, 'raccourcis-ecartes')}'
+  # page d'erreur, mais conserve la : il porte l'identite de l'application
+  # installee, donc son icone dans la barre des taches. Il est range hors du
+  # dossier du jeu, car il ne vaut que pour ce profil et cette machine : le
+  # dossier, lui, est fait pour etre copie ailleurs.
+  (Join-Path $env:LOCALAPPDATA 'ScrabbleDefi')
 )
 foreach ($root in $roots) {
   if (-not $root -or -not (Test-Path $root)) { continue }
@@ -473,21 +475,28 @@ foreach ($root in $roots) {
     # Demarrer. Chercher le mauvais nom au mauvais endroit revenait a ne jamais
     # trouver l'application, meme installee.
     if ($link.TargetPath -like '*msedge*.exe' -and $link.Arguments -like '*--app-id=*' -and $_.BaseName -like '*crabble*') {
-      Write-Output $_.FullName
+      # Encode en base64 : PowerShell ecrit sa sortie dans la page de codes de la
+      # console, pas en UTF-8. Un chemin accentue revenait mutile a Node, et
+      # Windows ne trouvait alors plus le fichier.
+      [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($_.FullName))
     }
   }
 }`;
 
   try {
     const found = execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', script], {
-      encoding: 'utf8',
+      encoding: 'ascii',
       timeout: 6000,
       windowsHide: true,
     })
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .filter(Boolean);
-    return found[0] ?? null;
+      .filter(Boolean)
+      .map((line) => Buffer.from(line, 'base64').toString('utf8'));
+
+    // On ne lance que ce qui existe reellement : un raccourci disparu ferait
+    // afficher a Windows une boite d'erreur, et le joueur n'aurait pas de jeu.
+    return found.find((file) => fs.existsSync(file)) ?? null;
   } catch {
     return null; // pas de PowerShell, pas de raccourci : on retombe sur --app=
   }
