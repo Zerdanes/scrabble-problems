@@ -26,12 +26,24 @@ git clone https://github.com/Zerdanes/scrabble-problems.git
 cd scrabble-problems
 ```
 
-Puis double-cliquez sur **`Scrabble.bat`**.
+Puis double-cliquez sur **`Scrabble.bat`**. C'est tout : **rien à installer**, pas
+d'installateur, pas de droits administrateur, rien d'ajouté au PATH.
 
-Au **premier lancement uniquement**, l'application télécharge la liste officielle
-des mots et construit son dictionnaire (une minute, connexion requise — voir
-« Les mots ne sont pas dans ce dépôt » plus bas). Ensuite, tout fonctionne hors
-ligne.
+Au **premier lancement uniquement**, et seulement si Node.js n'est pas déjà
+présent sur la machine, le jeu dépose une version portable du moteur dans son
+propre sous-dossier `runtime\` (~36 Mo téléchargés, empreinte SHA-256 vérifiée
+contre celle publiée par nodejs.org). Il télécharge ensuite la liste officielle
+des mots et construit son dictionnaire. Comptez une à deux minutes, connexion
+requise cette fois-là. Ensuite, tout fonctionne hors ligne.
+
+### Installer sur un autre ordinateur, sans connexion
+
+Le dossier du jeu est **entièrement autonome** une fois le premier lancement
+effectué : moteur, dictionnaire et sauvegardes y sont tous contenus. Pour
+installer chez quelqu'un d'autre, il suffit donc de **copier le dossier entier**
+(clé USB, disque externe). Sur la machine d'arrivée : double-clic sur
+`Scrabble.bat`, et le jeu démarre — sans internet, sans installation, sans
+compte.
 
 **Une seule fenêtre s'ouvre** : celle du jeu. Le moteur tourne sans fenêtre et
 s'arrête tout seul quand vous quittez.
@@ -47,7 +59,7 @@ commande à taper.
 
 | Fichier | À quoi il sert |
 |---|---|
-| **`Scrabble.bat`** | **Le lanceur.** Vérifie Node.js, construit le dictionnaire au premier lancement, démarre le moteur sans console. Bref clignotement noir au démarrage. |
+| **`Scrabble.bat`** | **Le lanceur.** Installe le moteur portable et construit le dictionnaire au premier lancement, puis démarre sans console. Bref clignotement noir au démarrage. |
 | `Scrabble (sans fenetre noire).vbs` | Exactement la même chose, sans le clignotement. Il ne fait que lancer le `.bat` en mode caché. Si Windows bloque les `.vbs`, restez sur le `.bat`. |
 | `Creer le raccourci sur le Bureau.bat` | **À lancer une seule fois.** Pose un raccourci sur le Bureau, avec l'icône du jeu. Ce n'est pas un lanceur. |
 
@@ -85,7 +97,9 @@ de cercle, ce qui donne un trait net de 16 à 256 px, et le chiffre est omis en
 dessous de 48 px où il ne serait qu'une bavure. PNG et ICO sont encodés à la
 main, sans bibliothèque.
 
-**Prérequis : [Node.js](https://nodejs.org) 18 ou plus.** Rien d'autre.
+**Aucun prérequis.** Si Node.js est déjà installé, le jeu l'utilise ; sinon il se
+procure sa propre copie portable, qui ne sort jamais du dossier et disparaît
+avec lui.
 
 ### Les mots ne sont pas dans ce dépôt
 
@@ -325,7 +339,9 @@ app/
       ui.js                        interface
   data/ dict.bin common.bin        dictionnaires + manifeste
         dict-manifest.json
-build/ wordsource.js               d'où viennent les mots, et leur validation
+runtime/ node.exe                  moteur portable, pose au 1er lancement
+build/ installer-moteur.ps1        le récupère et vérifie son empreinte
+       wordsource.js               d'où viennent les mots, et leur validation
        build-dict.js               construction du DAWG
        mots-source.txt             dernière liste installée (cache)
        freq-raw.txt                fréquences, pour le classement courant/rare

@@ -15,6 +15,11 @@ app/data/dict-manifest.json
 # Parties en cours, records, sauvegardes, dictionnaire remplace.
 data/
 
+# --- Moteur portable ----------------------------------------------------------
+# node.exe telecharge au premier lancement (~80 Mo). N'a rien a faire dans un
+# depot : il se recupere tout seul, et sa version depend de la machine.
+runtime/
+
 # --- Divers -------------------------------------------------------------------
 node_modules/
 *.log
