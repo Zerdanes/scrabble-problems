@@ -1,0 +1,22 @@
+# --- Listes de mots : jamais versionnees -------------------------------------
+# L'Officiel du Scrabble est une oeuvre editee par Larousse. Les depots qui la
+# diffusent sont sous licence MIT, mais une licence MIT sur un depot ne donne
+# aucun droit sur le contenu lui-meme. On ne redistribue donc pas la liste : elle
+# est telechargee au premier lancement, sur la machine de l'utilisateur.
+build/mots-source.txt
+build/freq-raw.txt
+build/*-raw.txt
+
+# --- Dictionnaires compiles (derives des listes ci-dessus) --------------------
+app/data/*.bin
+app/data/dict-manifest.json
+
+# --- Donnees personnelles et etat local --------------------------------------
+# Parties en cours, records, sauvegardes, dictionnaire remplace.
+data/
+
+# --- Divers -------------------------------------------------------------------
+node_modules/
+*.log
+Thumbs.db
+desktop.ini

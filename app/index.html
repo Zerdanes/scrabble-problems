@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scrabble — Le Défi</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%23f0dfb4'/%3E%3Ctext x='16' y='23' font-family='Segoe UI,sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='%233a2a15'%3ES%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <!-- ------------------------------------------------------------ Accueil -->
+    <section class="screen" id="screen-home">
+      <header class="home-head">
+        <h1>Scrabble<span>Le Défi</span></h1>
+        <p class="tagline">
+          Une grille en cours, sept lettres. Trouvez le coup qui rapporte le plus.
+        </p>
+      </header>
+
+      <button class="resume hidden" id="btn-resume">
+        <span class="resume-label">Reprendre la partie en cours</span>
+        <span class="resume-detail" id="resume-detail"></span>
+      </button>
+
+      <div class="levels" id="levels"></div>
+
+      <button class="update-banner hidden" id="update-banner">
+        <span class="update-title">📚 Une nouvelle version du dictionnaire est disponible</span>
+        <span class="update-detail" id="update-detail"></span>
+      </button>
+
+      <footer class="home-foot">
+        <button class="ghost" id="btn-help">❓ Comment ça marche</button>
+        <button class="ghost" id="btn-dict-home">📖 Dictionnaire</button>
+        <button class="ghost" id="btn-reset">Réinitialiser les statistiques</button>
+        <span class="dict-count" id="dict-count"></span>
+      </footer>
+    </section>
+
+    <!-- ---------------------------------------------------------- Aide -->
+    <section class="screen hidden" id="screen-help">
+      <header class="help-head">
+        <button class="ghost" id="btn-help-back">← Retour</button>
+        <h1>Comment ça marche</h1>
+      </header>
+
+      <div class="help-body">
+        <article class="help-card">
+          <h2>🎯 Le but</h2>
+          <p>
+            L'ordinateur vous montre une grille de partie déjà commencée et vous
+            donne sept lettres. Il n'y a qu'une chose à faire :
+            <b>trouver le coup qui rapporte le plus de points possible</b>.
+          </p>
+          <p>
+            Le nombre à atteindre est écrit en haut de l'écran. Tant que vous ne
+            l'avez pas atteint, cherchez encore : il existe toujours un coup qui
+            vaut exactement ce nombre.
+          </p>
+        </article>
+
+        <article class="help-card">
+          <h2>✋ Poser un mot</h2>
+          <ol>
+            <li>Cliquez sur la case où votre mot doit <b>commencer</b>. Un cadre vert apparaît.</li>
+            <li>
+              Une flèche indique le sens : <b>▸</b> vers la droite, <b>▾</b> vers le bas.
+              Pour changer de sens, cliquez une deuxième fois sur la même case.
+            </li>
+            <li>Cliquez sur vos lettres en bas, ou tapez-les au clavier.</li>
+            <li>Le mot et son score s'affichent tout de suite à droite.</li>
+            <li>Quand vous êtes content, cliquez sur <b>Valider le coup</b>.</li>
+          </ol>
+          <p class="help-note">
+            Pour retirer une lettre, cliquez simplement dessus. Le bouton
+            <b>Retirer mes jetons</b> vide tout d'un coup. Rien n'est jamais
+            définitif tant que vous n'avez pas validé.
+          </p>
+        </article>
+
+        <article class="help-card">
+          <h2>⌨️ Au clavier, si vous préférez</h2>
+          <table class="keys">
+            <tr><td>A à Z</td><td>pose la lettre</td></tr>
+            <tr><td>Retour arrière</td><td>enlève la dernière lettre posée</td></tr>
+            <tr><td>Entrée</td><td>valide le coup</td></tr>
+            <tr><td>Échap</td><td>retire toutes vos lettres</td></tr>
+            <tr><td>Flèches</td><td>déplacent le cadre vert</td></tr>
+          </table>
+          <p class="help-note">
+            Si vous tapez une lettre que vous n'avez pas, le joker la remplace
+            automatiquement — il vaut alors zéro point, comme au vrai Scrabble.
+          </p>
+        </article>
+
+        <article class="help-card">
+          <h2>📊 Les quatre niveaux</h2>
+          <dl class="levels-help">
+            <dt style="--tone:#2f8f5b">Facile</dt>
+            <dd>Un mot de tous les jours, deux à quatre lettres à poser.</dd>
+            <dt style="--tone:#2f6ea8">Moyen</dt>
+            <dd>Encore un mot courant, mais bien placé : il faut chercher la bonne case.</dd>
+            <dt style="--tone:#b3861e">Difficile</dt>
+            <dd>Grille chargée, gros score, et le mot peut être rare.</dd>
+            <dt style="--tone:#b3261e">Extrême</dt>
+            <dd>Il y a presque toujours un Scrabble à trouver : vos sept lettres y passent.</dd>
+          </dl>
+          <p class="help-note">
+            Aux niveaux Facile et Moyen, la solution est toujours un mot connu de
+            tout le monde. Aux deux autres, non — mais <b>vous pouvez toujours
+            jouer n'importe quel mot autorisé</b>, y compris les plus rares.
+            Aucun mot n'a été retiré du jeu.
+          </p>
+        </article>
+
+        <article class="help-card">
+          <h2>💡 Si vous séchez</h2>
+          <p>
+            Le bouton <b>Indice</b> donne quatre coups de pouce, de plus en plus
+            précis : combien de lettres à poser, le sens et la longueur du mot,
+            la case où il commence, puis sa première lettre.
+          </p>
+          <p>
+            Un indice n'empêche pas le problème de compter comme résolu, mais le
+            temps ne comptera pas pour votre record.
+          </p>
+          <p>
+            Le bouton <b>Voir la solution</b> montre le meilleur coup sur la
+            grille, et ceux qui venaient juste derrière. Il demande confirmation.
+          </p>
+        </article>
+
+        <article class="help-card">
+          <h2>📖 Le dictionnaire</h2>
+          <p>
+            Il est accessible depuis le menu et en pleine partie, et fonctionne
+            sans internet. Trois usages :
+          </p>
+          <ul>
+            <li><b>BONJOUR</b> — ce mot est-il autorisé ?</li>
+            <li><b>C?AT</b> — le <b>?</b> remplace une lettre inconnue</li>
+            <li><b>PORT*</b> — tous les mots qui commencent par PORT</li>
+          </ul>
+          <p>
+            Dans tous les cas, il affiche aussi la liste des mots que l'on peut
+            composer avec ces lettres.
+          </p>
+        </article>
+
+        <article class="help-card">
+          <h2>⏱️ Chronomètre et sauvegarde</h2>
+          <p>
+            Le chronomètre tourne pendant que vous cherchez. L'écran d'accueil
+            retient, pour chaque niveau, combien de problèmes vous avez résolus et
+            votre meilleur temps.
+          </p>
+          <p>
+            <b>Vous pouvez fermer l'application quand vous voulez.</b> La grille,
+            les lettres déjà posées et le chronomètre sont retrouvés exactement
+            comme vous les aviez laissés, même des semaines plus tard.
+          </p>
+        </article>
+
+        <article class="help-card wide">
+          <h2>📚 Les mots autorisés</h2>
+          <p id="dict-summary">Chargement…</p>
+          <p class="help-note">
+            C'est la liste officielle des mots admis au Scrabble francophone.
+            Elle change tous les quatre ans environ. Au démarrage, l'application
+            regarde s'il en existe une plus récente : <b>c'est la seule fois où
+            elle utilise internet</b>, et tout le reste — le jeu, le dictionnaire
+            — fonctionne sans connexion. Rien n'est jamais installé sans que vous
+            cliquiez, et l'ancienne liste est conservée pour pouvoir revenir en
+            arrière.
+          </p>
+          <div class="dict-state" id="dict-state"></div>
+          <div class="dict-buttons">
+            <button class="ghost" id="btn-dict-check">Vérifier s'il y a du nouveau</button>
+            <button class="primary hidden" id="btn-dict-apply">Installer la nouvelle liste</button>
+            <button class="ghost hidden" id="btn-dict-rollback">Revenir à la liste précédente</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------------- Jeu -->
+    <section class="screen hidden" id="screen-game">
+      <header class="game-head">
+        <button class="ghost" id="btn-menu">← Menu</button>
+        <div class="game-title">
+          <span class="badge" id="game-level">Moyen</span>
+          <span class="objective">Objectif : <b id="game-target">—</b> points</span>
+        </div>
+        <div class="timer" id="timer">00:00</div>
+      </header>
+
+      <main class="game-body">
+        <div class="board-area">
+          <div class="board-frame">
+            <div class="corner"></div>
+            <div class="coords coords-top" id="coords-top"></div>
+            <div class="coords coords-left" id="coords-left"></div>
+            <div class="board" id="board"></div>
+          </div>
+          <div class="rack" id="rack"></div>
+        </div>
+
+        <aside class="panel">
+          <div class="current">
+            <div class="current-word" id="current-word">—</div>
+            <div class="current-score"><b id="current-score">0</b> points</div>
+          </div>
+
+          <p class="message" id="message">
+            Cliquez sur une case pour poser votre premier jeton.
+          </p>
+
+          <div class="actions">
+            <button class="primary" id="btn-validate">Valider le coup</button>
+            <button class="ghost" id="btn-clear">Retirer mes jetons</button>
+            <button class="ghost" id="btn-dict-game">📖 Dictionnaire</button>
+            <button class="ghost" id="btn-hint">💡 Indice</button>
+            <button class="ghost danger" id="btn-give-up">Voir la solution</button>
+          </div>
+
+          <ul class="hints" id="hints"></ul>
+
+          <div class="attempts" id="attempts"></div>
+        </aside>
+      </main>
+    </section>
+
+    <!-- --------------------------------------------------------- Fin de jeu -->
+    <div class="overlay hidden" id="overlay-done">
+      <div class="dialog">
+        <div class="dialog-icon" id="done-icon">🏆</div>
+        <h2 id="done-title">Trouvé !</h2>
+        <p id="done-text"></p>
+        <div class="done-stats" id="done-stats"></div>
+        <div class="dialog-actions">
+          <button class="primary" id="btn-again">Nouveau problème</button>
+          <button class="ghost" id="btn-done-menu">Retour au menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------- Dictionnaire -->
+    <div class="overlay hidden" id="overlay-dict">
+      <div class="dialog dict">
+        <header class="dict-head">
+          <h2>Dictionnaire</h2>
+          <button class="icon" id="btn-dict-close" title="Fermer">✕</button>
+        </header>
+
+        <input
+          type="text"
+          id="dict-input"
+          class="dict-input"
+          placeholder="Un mot, ou un motif avec ? et *"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <p class="dict-help">
+          <b>BONJOUR</b> vérifie un mot · <b>C?AT</b> remplace une lettre ·
+          <b>PORT*</b> cherche les rallonges
+        </p>
+
+        <div class="verdict hidden" id="dict-verdict"></div>
+        <div class="dict-results" id="dict-results"></div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------- Choix d'un joker -->
+    <div class="overlay hidden" id="overlay-blank">
+      <div class="dialog blank">
+        <h2>Quelle lettre pour le joker ?</h2>
+        <div class="alphabet" id="alphabet"></div>
+        <button class="ghost" id="btn-blank-cancel">Annuler</button>
+      </div>
+    </div>
+
+    <div class="toast hidden" id="toast"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p id="loading-text">Chargement du dictionnaire…</p>
+    </div>
+
+    <script type="module" src="js/ui.js"></script>
+  </body>
+</html>

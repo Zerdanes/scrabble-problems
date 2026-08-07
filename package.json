@@ -1,0 +1,12 @@
+{
+  "name": "scrabble-defi",
+  "version": "1.0.0",
+  "description": "Entrainement au Scrabble : problemes generes, dictionnaire ODS hors ligne",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build-dict": "node build/build-dict.js",
+    "test": "node test/test.js"
+  }
+}
