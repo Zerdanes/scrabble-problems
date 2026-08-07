@@ -43,12 +43,15 @@ const el = {
   coordsLeft: $('coords-left'),
   timer: $('timer'),
   gameLevel: $('game-level'),
-  gameTarget: $('game-target'),
   currentWord: $('current-word'),
   currentScore: $('current-score'),
   message: $('message'),
   hints: $('hints'),
   hintsCard: $('hints-card'),
+  lettersCard: $('letters-card'),
+  lettersCell: $('letters-cell'),
+  lettersList: $('letters-list'),
+  lettersNote: $('letters-note'),
   attempts: $('attempts'),
   loading: $('loading'),
   loadingText: $('loading-text'),
@@ -316,9 +319,7 @@ function renderHome() {
   el.resume.classList.toggle('hidden', !running);
   if (running) {
     const meta = LEVEL_META[state.current.puzzle.level];
-    el.resumeDetail.textContent = `${meta.label} · objectif ${state.current.puzzle.target} points · ${formatTime(
-      state.current.elapsed
-    )} écoulées`;
+    el.resumeDetail.textContent = `${meta.label} · ${formatTime(state.current.elapsed)} écoulées`;
   }
 }
 
@@ -572,8 +573,57 @@ function typeLetter(char) {
 async function refresh() {
   renderBoard();
   renderRack();
+  updateLetters();
   await updatePreview();
   save();
+}
+
+/**
+ * Lettres jouables sur la case visee. Poser un jeton cree forcement un mot dans
+ * l'autre sens, et c'est ce que l'on oublie de verifier ; l'application le dit
+ * plutot que de laisser decouvrir l'erreur au moment de valider.
+ */
+let lettersToken = 0;
+async function updateLetters() {
+  const puzzle = currentPuzzle();
+  if (!cursor || !puzzle || state.current.finished) {
+    el.lettersCard.classList.add('hidden');
+    return;
+  }
+
+  const token = ++lettersToken;
+  const result = await call('letters', {
+    board: puzzle.board,
+    cell: cursor.cell,
+    dir: cursor.dir,
+    rack: puzzle.rack,
+  });
+  if (token !== lettersToken || !cursor) return;
+
+  el.lettersCard.classList.remove('hidden');
+  el.lettersCell.textContent = `Case ${cellName(cursor.cell)}, en écrivant ${
+    cursor.dir === 0 ? 'horizontalement' : 'verticalement'
+  }`;
+
+  if (result.free) {
+    el.lettersList.innerHTML = '';
+    el.lettersNote.textContent =
+      "Aucune lettre voisine dans l'autre sens : toutes vos lettres conviennent ici.";
+    return;
+  }
+
+  const jouables = result.playable ?? [];
+  el.lettersList.innerHTML = jouables
+    .map((letter) => `<span>${String.fromCharCode(65 + letter)}</span>`)
+    .join('');
+
+  if (!jouables.length) {
+    el.lettersNote.textContent = result.joker
+      ? `Aucune de vos lettres ne convient ici, à cause du mot ${result.around}. Seul le joker peut passer.`
+      : `Aucune de vos lettres ne convient ici : elles formeraient un mot faux avec ${result.around}.`;
+  } else {
+    el.lettersNote.textContent = `Les autres formeraient un mot faux avec ${result.around}.`;
+  }
 }
 
 async function updatePreview() {
@@ -637,7 +687,7 @@ function openGame() {
   const meta = LEVEL_META[puzzle.level];
   el.gameLevel.textContent = meta.label;
   el.gameLevel.style.setProperty('--tone', meta.tone);
-  el.gameTarget.textContent = puzzle.target;
+  el.lettersCard.classList.add('hidden');
   el.hints.innerHTML = '';
   el.hintsCard.classList.add('hidden');
   for (let i = 0; i < (state.current.hintsUsed ?? 0); i++) addHintRow(puzzle.hints[i]);
@@ -706,13 +756,12 @@ async function validateMove() {
   if (verdict.score >= current.puzzle.target) {
     win(verdict);
   } else {
-    const gap = current.puzzle.target - verdict.score;
-    setMessage(
-      `${word} vaut ${verdict.score} points — c’est valable, mais il manque ${gap} point${
-        gap > 1 ? 's' : ''
-      } pour le meilleur coup. Réessayez !`,
-      'warn'
-    );
+    // On ne dit pas de combien on est loin : ce serait annoncer le score a
+    // atteindre, et vider les indices de leur interet.
+    const ecart = current.puzzle.target - verdict.score;
+    const jugement =
+      ecart <= 5 ? 'vous y êtes presque' : ecart <= 15 ? 'mais il y a mieux' : 'mais il y a nettement mieux';
+    setMessage(`${word} vaut ${verdict.score} points — c’est valable, ${jugement}. Cherchez encore !`, 'warn');
   }
   renderAttempts();
   save();

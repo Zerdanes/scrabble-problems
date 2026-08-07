@@ -893,6 +893,54 @@ button:active {
   min-height: 0;
 }
 
+.letters-card {
+  background: var(--surface);
+  border: 1px solid rgba(47, 110, 168, 0.35);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.95rem;
+  box-shadow: var(--shadow);
+}
+
+.letters-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--tl);
+}
+
+.letters-cell {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.55rem;
+}
+
+.letters-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.letters-list span {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(158deg, #fbf1d8 0%, #ecd8a8 100%);
+  color: #3b2a14;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: inset 0 -2px 0 rgba(90, 60, 20, 0.22);
+}
+
+.letters-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
 .hints-card {
   background: #fdf4e0;
   border: 1px solid rgba(179, 134, 30, 0.35);

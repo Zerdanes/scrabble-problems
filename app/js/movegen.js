@@ -299,6 +299,70 @@ function collectDirection(dawg, board, rack, anchors, dir, out) {
   }
 }
 
+/**
+ * Lettres acceptables sur une case, compte tenu du mot perpendiculaire qu'elles
+ * formeraient. C'est le meme controle croise que celui du generateur, expose ici
+ * pour l'afficher au joueur : poser une lettre a cet endroit cree forcement un
+ * mot dans l'autre sens, et c'est exactement ce qu'on oublie de verifier.
+ *
+ * `dir` est la direction dans laquelle le joueur ecrit : le mot contraignant est
+ * donc celui de l'autre sens.
+ */
+export function allowedLetters(dawg, board, cell, dir) {
+  const { letters, blanks } = board;
+  if (letters[cell] !== EMPTY) return { free: false, letters: [], occupied: true };
+
+  const at = dir === 0 ? horizontal : vertical;
+  const line = dir === 0 ? Math.floor(cell / SIZE) : cell % SIZE;
+  const pos = dir === 0 ? cell % SIZE : Math.floor(cell / SIZE);
+
+  const before = [];
+  for (let k = line - 1; k >= 0 && letters[at(k, pos)] !== EMPTY; k--) before.unshift(at(k, pos));
+  const after = [];
+  for (let k = line + 1; k < SIZE && letters[at(k, pos)] !== EMPTY; k++) after.push(at(k, pos));
+
+  // Aucun voisin perpendiculaire : aucune contrainte, toutes les lettres passent.
+  if (!before.length && !after.length) return { free: true, letters: [], occupied: false };
+
+  let node = ROOT;
+  for (const c of before) {
+    const edge = dawg.findEdge(node, letters[c]);
+    node = edge < 0 ? -1 : dawg.target(edge);
+    if (node < 0) break;
+  }
+  if (node < 0) return { free: false, letters: [], occupied: false };
+
+  const accepted = [];
+  for (let edge = node; ; edge++) {
+    let ok;
+    if (after.length === 0) {
+      ok = dawg.isWord(edge);
+    } else {
+      let next = dawg.target(edge);
+      let last = -1;
+      for (const c of after) {
+        const step = next < 0 ? -1 : dawg.findEdge(next, letters[c]);
+        if (step < 0) {
+          last = -1;
+          break;
+        }
+        last = step;
+        next = dawg.target(step);
+      }
+      ok = last >= 0 && dawg.isWord(last);
+    }
+    if (ok) accepted.push(dawg.letter(edge));
+    if (dawg.isLast(edge)) break;
+  }
+
+  const word = [...before, ...after]
+    .map((c) => String.fromCharCode(65 + letters[c]))
+    .join('');
+  const score = [...before, ...after].reduce((sum, c) => sum + (blanks[c] ? 0 : LETTER_VALUES[letters[c]]), 0);
+
+  return { free: false, letters: accepted, occupied: false, around: word, aroundScore: score };
+}
+
 /** Applique un coup sur le plateau (mutation en place). */
 export function applyMove(board, move) {
   for (const tile of move.tiles) {

@@ -8,13 +8,15 @@
  * une partie credible, et le tirage est coherent avec ce qui reste dans le sac.
  */
 
-import { generateMoves, applyMove } from './movegen.js';
+import { generateMoves, applyMove, scorePlacement } from './movegen.js';
 import {
   SIZE,
   EMPTY,
   BLANK,
   RACK_SIZE,
   VOWELS,
+  PREMIUM,
+  LETTER_VALUES,
   newBag,
   shuffle,
   seededRandom,
@@ -22,41 +24,44 @@ import {
 } from './rules.js';
 
 export const LEVELS = {
+  // `turns` : nombre de coups joues avant de rendre la main. Les fourchettes
+  // sont larges a dessein — c'est ce qui fait qu'une grille arrive presque vide
+  // ou deja bien remplie, au lieu de toujours se ressembler.
   facile: {
     label: 'Facile',
-    turns: [3, 6],
+    turns: [2, 9],
     score: [16, 38],
     tiles: [2, 4],
     minLength: 3,
-    maxLength: 6,
+    maxLength: 7,
     margin: 3,
     requireCommon: true,
     allowBlank: false,
   },
   moyen: {
     label: 'Moyen',
-    turns: [5, 10],
+    turns: [4, 13],
     score: [30, 58],
     tiles: [2, 6],
     minLength: 3,
-    maxLength: 8,
+    maxLength: 9,
     margin: 2,
     requireCommon: true,
     allowBlank: false,
   },
   difficile: {
     label: 'Difficile',
-    turns: [8, 14],
+    turns: [6, 18],
     score: [46, 999],
     tiles: [3, 7],
-    maxLength: 12,
+    maxLength: 15,
     margin: 1,
     requireCommon: false,
     allowBlank: true,
   },
   extreme: {
     label: 'Extreme',
-    turns: [6, 13],
+    turns: [5, 16],
     score: [72, 999],
     tiles: [4, 7],
     maxLength: 15,
@@ -188,14 +193,17 @@ export function generatePuzzle(dawg, common, level, seed) {
       const analysis = describe(dawg, common, moves);
       if (!fits(level, moves, analysis)) continue;
 
-      return buildPuzzle(level, seed, board, rack, moves, analysis, common);
+      return buildPuzzle(level, seed, board, rack, moves, analysis, common, dawg);
     }
   }
   return null;
 }
 
-function buildPuzzle(level, seed, board, rack, moves, analysis, common) {
+function buildPuzzle(level, seed, board, rack, moves, analysis, common, dict) {
   const { best } = analysis;
+  // Nombre de mots formes d'un coup : sert d'indice, et n'est pas connu du
+  // generateur, qui ne compte que le score.
+  const verdict = scorePlacement(dict, board, best.tiles);
 
   // Les meilleurs coups a scores distincts : sert au retour "tu es a 8 points".
   const podium = [];
@@ -221,6 +229,7 @@ function buildPuzzle(level, seed, board, rack, moves, analysis, common) {
       start: best.start,
       tiles: best.tiles,
       isCommon: common.has(best.word),
+      words: verdict.ok ? verdict.words.length : 1,
     },
     podium,
     moveCount: moves.length,
@@ -228,15 +237,95 @@ function buildPuzzle(level, seed, board, rack, moves, analysis, common) {
   };
 }
 
-/** Aides progressives, calculees a partir de la solution. */
+const CASE_LABEL = ['', 'lettre compte double', 'lettre compte triple', 'mot compte double', 'mot compte triple'];
+
+const cellName = (cell) => `${String.fromCharCode(65 + (cell % SIZE))}${Math.floor(cell / SIZE) + 1}`;
+
+/**
+ * Reservoir d'indices, ranges du plus vague au plus precis.
+ *
+ * Quatre paliers, un indice tire dans chacun : les indices restent progressifs,
+ * mais changent d'un probleme a l'autre. Une liste fixe se retenait par coeur au
+ * bout de quelques parties et ne renseignait plus sur rien.
+ *
+ * Chaque entree peut renvoyer null quand elle ne s'applique pas (pas de case
+ * speciale utilisee, aucune lettre inutilisee...) ; on tire alors ailleurs dans
+ * le meme palier.
+ */
+const HINT_POOL = [
+  // --- palier 1 : de quoi il s'agit ---------------------------------------
+  { tier: 0, make: (p) => `Le meilleur coup pose ${p.solution.tiles.length} jeton${p.solution.tiles.length > 1 ? 's' : ''}.` },
+  { tier: 0, make: (p) => (p.solution.isCommon ? "C'est un mot que tout le monde connait." : "C'est un mot rare : ne cherchez pas du cote du langage courant.") },
+  {
+    tier: 0,
+    make: (p) => {
+      const restantes = p.rack.length - p.solution.tiles.length;
+      return restantes > 0 ? `${restantes} lettre${restantes > 1 ? 's' : ''} du tirage ne sert${restantes > 1 ? 'ent' : ''} pas.` : 'Les sept lettres du tirage y passent.';
+    },
+  },
+  { tier: 0, make: (p) => (p.solution.words > 1 ? `Le coup forme ${p.solution.words} mots d'un coup.` : "Le coup ne forme qu'un seul mot.") },
+
+  // --- palier 2 : sa forme -------------------------------------------------
+  { tier: 1, make: (p) => `Le meilleur coup rapporte ${p.target} points.` },
+  { tier: 1, make: (p) => `Le mot se joue ${p.solution.dir === 0 ? 'horizontalement' : 'verticalement'}.` },
+  { tier: 1, make: (p) => `Le mot fait ${p.solution.word.length} lettres.` },
+  {
+    tier: 1,
+    make: (p) => {
+      const posees = p.solution.tiles.length;
+      const empruntees = p.solution.word.length - posees;
+      return empruntees > 0 ? `Le mot s'appuie sur ${empruntees} lettre${empruntees > 1 ? 's' : ''} deja sur la grille.` : null;
+    },
+  },
+
+  // --- palier 3 : ou il se trouve -----------------------------------------
+  { tier: 2, make: (p) => `Il commence case ${cellName(p.solution.start)}.` },
+  {
+    tier: 2,
+    make: (p) => {
+      const premium = p.solution.tiles.map((t) => PREMIUM[t.cell]).filter(Boolean).sort((a, b) => b - a)[0];
+      return premium ? `Le coup passe par une case ${CASE_LABEL[premium]}.` : null;
+    },
+  },
+  {
+    tier: 2,
+    make: (p) =>
+      p.solution.dir === 0
+        ? `Tout se joue sur la rangee ${Math.floor(p.solution.start / SIZE) + 1}.`
+        : `Tout se joue sur la colonne ${String.fromCharCode(65 + (p.solution.start % SIZE))}.`,
+  },
+
+  // --- palier 4 : ses lettres ---------------------------------------------
+  { tier: 3, make: (p) => `Sa premiere lettre est un ${p.solution.word[0]}.` },
+  { tier: 3, make: (p) => `Sa derniere lettre est un ${p.solution.word[p.solution.word.length - 1]}.` },
+  {
+    tier: 3,
+    make: (p) => {
+      const chere = p.solution.tiles.filter((t) => !t.blank).sort((a, b) => LETTER_VALUES[b.letter] - LETTER_VALUES[a.letter])[0];
+      return chere && LETTER_VALUES[chere.letter] >= 3
+        ? `Le ${String.fromCharCode(65 + chere.letter)} de votre tirage est utilise.`
+        : null;
+    },
+  },
+];
+
+/** Quatre indices tires du reservoir, un par palier, du plus vague au plus precis. */
 export function buildHints(puzzle) {
-  const { solution, target } = puzzle;
-  const row = Math.floor(solution.start / SIZE) + 1;
-  const col = String.fromCharCode(65 + (solution.start % SIZE));
-  return [
-    `Le meilleur coup rapporte ${target} points et pose ${solution.tiles.length} jetons.`,
-    `Le mot se joue ${solution.dir === 0 ? 'horizontalement' : 'verticalement'} et fait ${solution.word.length} lettres.`,
-    `Il commence case ${col}${row}.`,
-    `Sa premiere lettre est un ${solution.word[0]}.`,
-  ];
+  const random = seededRandom((puzzle.seed ^ 0x9e3779b9) >>> 0);
+  const hints = [];
+
+  for (let tier = 0; tier < 4; tier++) {
+    const candidats = shuffle(
+      HINT_POOL.filter((entry) => entry.tier === tier),
+      random
+    );
+    for (const candidat of candidats) {
+      const texte = candidat.make(puzzle);
+      if (texte) {
+        hints.push(texte);
+        break;
+      }
+    }
+  }
+  return hints;
 }

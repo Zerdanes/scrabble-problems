@@ -72,9 +72,15 @@
             <b>trouver le coup qui rapporte le plus de points possible</b>.
           </p>
           <p>
-            Le nombre à atteindre est écrit en haut de l'écran. Tant que vous ne
-            l'avez pas atteint, cherchez encore : il existe toujours un coup qui
-            vaut exactement ce nombre.
+            Le nombre de points à atteindre <b>n'est pas affiché</b> : à vous de
+            juger si vous avez trouvé le meilleur. Posez votre mot et validez —
+            l'application vous dira si c'était le coup maximum, ou s'il y a
+            mieux.
+          </p>
+          <p class="help-note">
+            Si vous séchez, le premier indice vous donne souvent le nombre de
+            points visé. C'est justement parce que l'objectif est caché que les
+            indices servent à quelque chose.
           </p>
         </article>
 
@@ -157,8 +163,13 @@
           <h2>💡 Si vous séchez</h2>
           <p>
             Le bouton <b>Indice</b> donne quatre coups de pouce, de plus en plus
-            précis : combien de lettres à poser, le sens et la longueur du mot,
-            la case où il commence, puis sa première lettre.
+            précis : d'abord de quoi il s'agit, puis la forme du mot, puis où il
+            se trouve, et enfin l'une de ses lettres.
+          </p>
+          <p>
+            Ils ne sont <b>pas les mêmes d'un problème à l'autre</b> : ils sont
+            tirés au sort dans un réservoir plus large, pour qu'on ne finisse pas
+            par les connaître par cœur.
           </p>
           <p>
             Un indice n'empêche pas le problème de compter comme résolu, mais le
@@ -242,7 +253,7 @@
         <button class="ghost" id="btn-menu">← Menu</button>
         <div class="game-title">
           <span class="badge" id="game-level">Moyen</span>
-          <span class="objective">Objectif : <b id="game-target">—</b> points</span>
+          <span class="objective">Trouvez le coup qui rapporte le plus</span>
         </div>
         <div class="timer" id="timer">00:00</div>
       </header>
@@ -252,6 +263,13 @@
              le panneau de droite et evite que les indices fassent grandir
              celui-ci jusqu'a le faire defiler. -->
         <aside class="side">
+          <div class="letters-card hidden" id="letters-card">
+            <h3>Lettres possibles ici</h3>
+            <div class="letters-cell" id="letters-cell"></div>
+            <div class="letters-list" id="letters-list"></div>
+            <p class="letters-note" id="letters-note"></p>
+          </div>
+
           <div class="hints-card hidden" id="hints-card">
             <h3>💡 Indices</h3>
             <ol class="hints" id="hints"></ol>

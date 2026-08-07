@@ -4,7 +4,7 @@
  */
 
 import { Dawg } from './dawg.js';
-import { scorePlacement } from './movegen.js';
+import { scorePlacement, allowedLetters } from './movegen.js';
 import { generatePuzzle, buildHints } from './puzzle.js';
 
 let dict = null;
@@ -39,6 +39,20 @@ const handlers = {
 
   check({ board, placements }) {
     return scorePlacement(dict, boardFrom(board), placements);
+  },
+
+  /** Lettres jouables sur une case, d'apres le mot perpendiculaire. */
+  letters({ board, cell, dir, rack }) {
+    const result = allowedLetters(dict, boardFrom(board), cell, dir);
+    if (result.free || result.occupied) return result;
+    // On ne garde que ce que le joueur a reellement en main, plus le joker qui
+    // peut tout prendre.
+    const enMain = new Set(rack.filter((letter) => letter !== 26));
+    return {
+      ...result,
+      playable: result.letters.filter((letter) => enMain.has(letter)),
+      joker: rack.includes(26),
+    };
   },
 
   lookup({ query }) {
