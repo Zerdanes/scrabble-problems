@@ -82,10 +82,24 @@ D'où la marche à suivre, en **une seule fois par ordinateur** :
 2. C'est tout. Windows crée une entrée dédiée, épinglable, avec l'icône du jeton.
 
 Aux lancements suivants, `server.js` **cherche le raccourci créé par cette
-installation** dans le menu Démarrer et l'ouvre à la place d'une fenêtre `--app=`
+installation** et l'ouvre à la place d'une fenêtre `--app=`
 (`findInstalledShortcut()`). L'icône est donc correcte à chaque démarrage, sans
 que le joueur ait à y penser. S'il n'y a pas d'installation, le comportement
 précédent s'applique — rien ne casse.
+
+⚠️ **L'installation dépose son propre raccourci sur le Bureau, et il est
+trompeur** : il ouvre bien la fenêtre du jeu, mais **ne démarre pas le moteur**.
+Cliquer dessus donne `ERR_CONNECTION_REFUSED`. Comme son nom ressemble au nôtre,
+l'erreur est facile à commettre.
+
+`Creer le raccourci sur le Bureau.bat` s'en occupe : il repose le bon raccourci
+et **écarte celui du navigateur** dans `raccourcis-ecartes\`. Il n'est pas
+supprimé, car c'est lui qui porte l'identité de l'application installée : le
+serveur va l'y chercher pour ouvrir la fenêtre avec la bonne icône.
+
+**Le seul point d'entrée est donc l'icône du Bureau.** Épingler l'application
+installée à la barre des tâches et cliquer dessus moteur éteint redonnerait la
+même page d'erreur.
 
 Le bandeau n'apparaît que si le navigateur juge l'application installable
 (manifeste, icônes 192 et 512, `display: standalone`) et disparaît une fois

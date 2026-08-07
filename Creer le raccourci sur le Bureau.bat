@@ -1,16 +1,15 @@
 @echo off
-rem Pose un raccourci "Scrabble - Le Defi" sur le Bureau, avec l'icone du jeu.
-rem A lancer une seule fois. Ce n'est pas le lanceur du jeu : pour jouer, c'est
-rem Scrabble.bat.
+rem Pose le raccourci du jeu sur le Bureau. A lancer une seule fois.
+rem Ce n'est pas le lanceur du jeu : pour jouer, c'est Scrabble.bat.
 rem
 rem Ce fichier est un .bat et non un .ps1 : Windows n'associe aucun programme
 rem aux .ps1 par defaut, un double-clic dessus n'aurait rien lance.
+rem
+rem L'icone est fournie avec le jeu : ce script n'a besoin que de Windows.
 
-rem L'icone est fournie avec le jeu : ce fichier n'a besoin de rien d'autre que
-rem de Windows, pas meme du moteur.
 cd /d "%~dp0"
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $here='%~dp0'; $ico=Join-Path $here 'app\icon.ico'; $lnk=Join-Path ([Environment]::GetFolderPath('Desktop')) 'Scrabble - Le Defi.lnk'; $sc=(New-Object -ComObject WScript.Shell).CreateShortcut($lnk); $sc.TargetPath=(Join-Path $here 'Scrabble.bat'); $sc.WorkingDirectory=$here; $sc.Description='Entrainement au Scrabble : problemes et dictionnaire ODS'; $sc.WindowStyle=7; if (Test-Path $ico) { $sc.IconLocation=($ico + ',0') }; $sc.Save(); Write-Host ''; Write-Host ('  Raccourci cree sur le Bureau : ' + $lnk)"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0build\poser-raccourci.ps1"
 
 echo.
 echo   Vous pouvez fermer cette fenetre.

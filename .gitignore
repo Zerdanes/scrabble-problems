@@ -20,6 +20,11 @@ data/
 # depot : il se recupere tout seul, et sa version depend de la machine.
 runtime/
 
+# --- Raccourcis ecartes -------------------------------------------------------
+# Raccourci depose par le navigateur a l'installation, range ici : il est propre
+# a la machine et a son profil.
+raccourcis-ecartes/
+
 # --- Divers -------------------------------------------------------------------
 node_modules/
 *.log

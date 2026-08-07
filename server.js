@@ -457,13 +457,22 @@ $ErrorActionPreference = 'SilentlyContinue'
 $shell = New-Object -ComObject WScript.Shell
 $roots = @(
   (Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs'),
-  (Join-Path $env:ProgramData 'Microsoft\\Windows\\Start Menu\\Programs')
+  (Join-Path $env:ProgramData 'Microsoft\\Windows\\Start Menu\\Programs'),
+  [Environment]::GetFolderPath('Desktop'),
+  # Le raccourci pose par le navigateur est ecarte du Bureau, ou il ouvrait une
+  # page d'erreur, mais conserve ici : il porte l'identite de l'application
+  # installee, donc son icone dans la barre des taches.
+  '${path.join(ROOT, 'raccourcis-ecartes')}'
 )
 foreach ($root in $roots) {
-  if (-not (Test-Path $root)) { continue }
-  Get-ChildItem $root -Filter *.lnk -Recurse | ForEach-Object {
+  if (-not $root -or -not (Test-Path $root)) { continue }
+  Get-ChildItem $root -Filter *.lnk -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
     $link = $shell.CreateShortcut($_.FullName)
-    if ($link.TargetPath -like '*msedge.exe' -and $link.Arguments -like '*--app-id=*' -and $_.BaseName -like '*Scrabble*') {
+    # Edge pointe ses applications installees sur msedge_proxy.exe, pas sur
+    # msedge.exe, et depose le raccourci sur le Bureau plutot que dans le menu
+    # Demarrer. Chercher le mauvais nom au mauvais endroit revenait a ne jamais
+    # trouver l'application, meme installee.
+    if ($link.TargetPath -like '*msedge*.exe' -and $link.Arguments -like '*--app-id=*' -and $_.BaseName -like '*crabble*') {
       Write-Output $_.FullName
     }
   }
