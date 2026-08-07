@@ -242,10 +242,23 @@ setInterval(() => {
   fsp.writeFile(DEFINITIONS_FILE, JSON.stringify(definitions), 'utf8').catch(() => {});
 }, 4000).unref();
 
+/**
+ * Un resultat vide n'est pas garde indefiniment : le Wiktionnaire s'enrichit, et
+ * surtout une reponse tronquee un jour de reseau capricieux figerait le mot a
+ * "pas de definition" pour toujours. On retente au bout d'une semaine.
+ */
+const EMPTY_RETRY = 7 * 24 * 60 * 60 * 1000;
+
+function usable(entry) {
+  if (!entry) return false;
+  if (entry.entries?.length) return true;
+  return Date.now() - Date.parse(entry.fetchedAt ?? 0) < EMPTY_RETRY;
+}
+
 async function lookupDefinition(word) {
   const key = word.trim().toUpperCase();
   const cache = loadDefinitions();
-  if (cache[key]) return { ...cache[key], cached: true };
+  if (usable(cache[key])) return { ...cache[key], cached: true };
 
   const result = await defineWord(key);
   cache[key] = result;
