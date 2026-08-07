@@ -347,6 +347,28 @@ const server = http.createServer(async (request, response) => {
 
 // ------------------------------------------------------------------ demarrage
 
+/**
+ * Le jeu est-il deja lance ? Sans ce controle, un deuxieme double-clic demarre
+ * un serveur sur le port suivant, et les deux ecrivent dans le meme
+ * data/state.json : la partie en cours d'une fenetre ecrase celle de l'autre.
+ * On prefere rendre la main a la fenetre existante.
+ */
+async function findRunningInstance() {
+  for (let port = FIRST_PORT; port < FIRST_PORT + 12; port++) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/dict/status`, {
+        signal: AbortSignal.timeout(500),
+      });
+      if (!response.ok) continue;
+      const body = await response.json();
+      if (body.ok && 'manifest' in body) return port; // c'est bien notre application
+    } catch {
+      // port ferme (immediat) ou occupe par autre chose : on passe au suivant
+    }
+  }
+  return null;
+}
+
 function listen(port, attempt = 0) {
   server.once('error', (error) => {
     if (error.code === 'EADDRINUSE' && attempt < 12) return listen(port + 1, attempt + 1);
@@ -391,6 +413,13 @@ function onReady(port) {
       process.exit(0);
     }
   }, 30_000);
+}
+
+const running = await findRunningInstance();
+if (running) {
+  console.log(`\n  Le jeu est deja ouvert (port ${running}). Retour a la fenetre existante.\n`);
+  if (!process.env.SCRAB_NO_OPEN) openWindow(`http://localhost:${running}/`);
+  process.exit(0);
 }
 
 listen(FIRST_PORT);

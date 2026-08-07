@@ -98,6 +98,27 @@
         </article>
 
         <article class="help-card">
+          <h2>🃏 Reconnaître un joker</h2>
+          <p>
+            Sur la grille, certains jetons sont écrits <b><i>en italique</i></b>,
+            dans une couleur plus claire, et <b>sans le petit chiffre</b> dans le
+            coin. Ce sont les jokers : ils ont pris la lettre affichée, mais ils
+            valent <b>zéro point</b>.
+          </p>
+          <p>
+            Le sac en contient deux. Ils peuvent apparaître sur la grille à
+            n'importe quel niveau, posés par la partie que l'ordinateur a jouée
+            avant vous. Dans <b>votre</b> tirage, en revanche, ils ne sortent
+            qu'en Difficile et en Extrême — les deux premiers niveaux les
+            écartent pour rester simples.
+          </p>
+          <p class="help-note">
+            Un rappel de tous ces repères est affiché en permanence en bas à
+            droite pendant la partie.
+          </p>
+        </article>
+
+        <article class="help-card">
           <h2>📊 Les quatre niveaux</h2>
           <dl class="levels-help">
             <dt style="--tone:#2f8f5b">Facile</dt>
@@ -234,15 +255,29 @@
 
           <div class="actions">
             <button class="primary" id="btn-validate">Valider le coup</button>
-            <button class="ghost" id="btn-clear">Retirer mes jetons</button>
-            <button class="ghost" id="btn-dict-game">📖 Dictionnaire</button>
-            <button class="ghost" id="btn-hint">💡 Indice</button>
-            <button class="ghost danger" id="btn-give-up">Voir la solution</button>
+            <div class="actions-grid">
+              <button class="ghost" id="btn-clear">Retirer mes jetons</button>
+              <button class="ghost" id="btn-dict-game">📖 Dictionnaire</button>
+              <button class="ghost" id="btn-hint">💡 Indice</button>
+              <button class="ghost danger" id="btn-give-up">Voir la solution</button>
+            </div>
           </div>
 
           <ul class="hints" id="hints"></ul>
 
           <div class="attempts" id="attempts"></div>
+
+          <div class="legend">
+            <h3>Repères</h3>
+            <ul>
+              <li><span class="chip tw">MT</span>mot compte triple</li>
+              <li><span class="chip dw">MD</span>mot compte double</li>
+              <li><span class="chip tl">LT</span>lettre compte triple</li>
+              <li><span class="chip dl">LD</span>lettre compte double</li>
+              <li><span class="chip sample pending-sample">E<i>1</i></span>vos lettres, pas encore validées</li>
+              <li><span class="chip sample joker-sample">E</span>joker : prend la lettre, vaut 0 point</li>
+            </ul>
+          </div>
         </aside>
       </main>
     </section>

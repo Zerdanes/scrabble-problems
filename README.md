@@ -36,6 +36,10 @@ ligne.
 Une fenêtre de jeu s'ouvre ; une petite fenêtre noire reste réduite dans la barre
 des tâches, c'est normal (c'est le moteur). Tout se ferme quand vous quittez.
 
+Relancer `Scrabble.bat` alors que le jeu tourne déjà **ne démarre pas un second
+moteur** : la fenêtre existante est ramenée au premier plan. Sans ce garde-fou,
+deux instances écriraient tour à tour dans la même sauvegarde.
+
 - `Scrabble (sans fenetre).vbs` fait la même chose sans aucune fenêtre noire.
   Si Windows bloque les fichiers `.vbs`, restez sur le `.bat`.
 - `creer-raccourci-bureau.ps1` (clic droit → Exécuter avec PowerShell) pose un

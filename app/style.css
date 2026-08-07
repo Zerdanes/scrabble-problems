@@ -618,15 +618,30 @@ button:active {
   opacity: 0.75;
 }
 
+/* Un joker doit se reconnaitre d'un coup d'oeil : trois signaux se cumulent —
+   pas de chiffre, lettre en italique plus claire, et un liseré pointillé. */
 .tile.blank {
-  color: #9b5f1c;
+  background: linear-gradient(158deg, #f7f0e3 0%, #ded1b9 100%);
+  color: #96601f;
   font-style: italic;
+  box-shadow: inset 0 0 0 1.5px rgba(150, 96, 31, 0.55), inset 0 -2px 0 rgba(90, 60, 20, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
+/* Les jetons que le joueur vient de poser sont surelevés et franchement verts :
+   il doit voir en un instant ce qui est a lui et ce qui etait deja sur la grille. */
 .tile.pending {
-  background: linear-gradient(158deg, #dff3e6 0%, #b6e0c6 100%);
-  box-shadow: inset 0 0 0 2px var(--green), inset 0 -2px 0 rgba(20, 80, 55, 0.25),
-    0 2px 5px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(158deg, #cdefdd 0%, #8ecfab 100%);
+  color: #14503a;
+  box-shadow: inset 0 0 0 2px var(--green), inset 0 -2px 0 rgba(20, 80, 55, 0.3),
+    0 4px 7px rgba(20, 60, 45, 0.4);
+  transform: translateY(-2px) scale(1.05);
+  z-index: 3;
+}
+
+.tile.pending.blank {
+  color: #1c6b4c;
+  background: linear-gradient(158deg, #dcf2e6 0%, #a8dcc0 100%);
 }
 
 .tile.reveal {
@@ -687,14 +702,14 @@ button:active {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.7rem;
   overflow-y: auto;
 }
 
 .current {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   text-align: center;
   box-shadow: var(--shadow);
 }
@@ -748,6 +763,109 @@ button:active {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+/* Les actions secondaires sur deux colonnes : le panneau etait une longue
+   colonne de boutons identiques suivie d'un grand vide. */
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.actions-grid .ghost {
+  padding: 0.65rem 0.5rem;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+/* ---------------------------------------------------------------- legende */
+
+.legend {
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(90, 70, 45, 0.18);
+  border-radius: var(--radius);
+  padding: 0.8rem 0.9rem;
+}
+
+.legend h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+}
+
+.legend ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.28rem;
+  font-size: 0.81rem;
+  color: var(--ink-soft);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.legend .chip {
+  flex: none;
+  width: 2.1rem;
+  height: 1.4rem;
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.legend .chip.tw {
+  background: var(--tw);
+}
+.legend .chip.dw {
+  background: var(--dw);
+  color: #7c2d1f;
+}
+.legend .chip.tl {
+  background: var(--tl);
+}
+.legend .chip.dl {
+  background: var(--dl);
+  color: #1b4a6b;
+}
+
+.legend .chip.sample {
+  position: relative;
+  width: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.legend .chip.sample i {
+  position: absolute;
+  right: 2px;
+  bottom: -1px;
+  font-size: 0.55em;
+  font-style: normal;
+  opacity: 0.75;
+}
+
+.legend .chip.pending-sample {
+  background: linear-gradient(158deg, #cdefdd 0%, #8ecfab 100%);
+  color: #14503a;
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+
+.legend .chip.joker-sample {
+  background: linear-gradient(158deg, #f7f0e3 0%, #ded1b9 100%);
+  color: #96601f;
+  font-style: italic;
+  box-shadow: inset 0 0 0 1.5px rgba(150, 96, 31, 0.55);
 }
 
 .hints {
