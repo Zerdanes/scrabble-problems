@@ -42,11 +42,19 @@ fenêtre existante est ramenée au premier plan. Sans ce garde-fou, deux instanc
 
 ### Quel fichier lancer ?
 
+Tout se lance par **double-clic**, il n'y a jamais de clic droit ni de ligne de
+commande à taper.
+
 | Fichier | À quoi il sert |
 |---|---|
 | **`Scrabble.bat`** | **Le lanceur.** Vérifie Node.js, construit le dictionnaire au premier lancement, démarre le moteur sans console. Bref clignotement noir au démarrage. |
 | `Scrabble (sans fenetre noire).vbs` | Exactement la même chose, sans le clignotement. Il ne fait que lancer le `.bat` en mode caché. Si Windows bloque les `.vbs`, restez sur le `.bat`. |
-| `creer-raccourci-bureau.ps1` | **À lancer une seule fois** (clic droit → Exécuter avec PowerShell). Pose un raccourci sur le Bureau, avec l'icône du jeu. Ce n'est pas un lanceur. |
+| `Creer le raccourci sur le Bureau.bat` | **À lancer une seule fois.** Pose un raccourci sur le Bureau, avec l'icône du jeu. Ce n'est pas un lanceur. |
+
+> Ce dernier était initialement un `.ps1`. Windows **n'associe aucun programme
+> aux fichiers `.ps1`** : double-cliquer dessus n'exécutait rien, il fallait
+> savoir faire clic droit → Exécuter avec PowerShell. Un `.bat` s'exécute au
+> double-clic sans rien connaître.
 
 ### L'icône dans la barre des tâches
 
