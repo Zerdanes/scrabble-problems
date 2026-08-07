@@ -303,6 +303,15 @@ function claimSession(id, { force = false } = {}) {
   return { active: false };
 }
 
+/**
+ * La fenetre previent qu'elle se ferme. Sans cela il faudrait attendre
+ * l'expiration du delai, et relancer le jeu dans la foulee afficherait
+ * "deja ouvert" alors qu'il ne l'est plus.
+ */
+function releaseSession(id) {
+  if (session.id === id) session = { id: null, lastSeen: 0 };
+}
+
 const server = http.createServer(async (request, response) => {
   const { url, method } = request;
 
@@ -321,6 +330,11 @@ const server = http.createServer(async (request, response) => {
     } catch {
       return send(response, 400, '{"ok":false}');
     }
+  }
+
+  if (url.startsWith('/api/session/release')) {
+    releaseSession(new URL(url, 'http://localhost').searchParams.get('id') ?? '');
+    return send(response, 200, '{"ok":true}');
   }
 
   if (url.startsWith('/api/ping')) {

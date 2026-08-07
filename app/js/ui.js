@@ -1232,7 +1232,13 @@ window.addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') save({ immediate: true });
 });
-window.addEventListener('pagehide', () => save({ immediate: true }));
+window.addEventListener('pagehide', () => {
+  save({ immediate: true });
+  // On rend la main tout de suite. Sans cela le serveur attendrait l'expiration
+  // du delai, et relancer le jeu juste apres l'avoir ferme afficherait
+  // "le jeu est deja ouvert" alors qu'il ne l'est plus.
+  if (!duplicate) navigator.sendBeacon(`/api/session/release?id=${sessionId}`);
+});
 
 // Assez frequent pour que le serveur ne croie jamais la fenetre abandonnee, et
 // pour qu'une fenetre en veille reprenne vite la main si l'autre a ete fermee.
