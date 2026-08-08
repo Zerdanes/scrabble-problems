@@ -909,35 +909,68 @@ button:active {
   color: var(--tl);
 }
 
-.letters-cell {
-  font-size: 0.8rem;
+.letters-dir + .letters-dir {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed rgba(47, 110, 168, 0.3);
+}
+
+.letters-dir-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+}
+
+.letters-dir em {
+  font-size: 0.82rem;
   color: var(--ink-soft);
-  margin-bottom: 0.55rem;
+  font-style: normal;
+}
+
+.letters-dir em:first-of-type {
+  font-weight: 600;
 }
 
 .letters-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 0.22rem;
 }
 
+/* Toutes les lettres possibles sont montrees. Celles du tirage ressortent en
+   jeton ivoire, les autres restent en retrait : le joueur voit d'un coup ce
+   qui rentre ici, et ce qu'il a effectivement sous la main. */
 .letters-list span {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 1.45rem;
+  height: 1.45rem;
   border-radius: 3px;
   display: grid;
   place-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: rgba(90, 70, 45, 0.09);
+}
+
+.letters-list span.has {
   background: linear-gradient(158deg, #fbf1d8 0%, #ecd8a8 100%);
   color: #3b2a14;
   font-weight: 700;
-  font-size: 0.9rem;
   box-shadow: inset 0 -2px 0 rgba(90, 60, 20, 0.22);
 }
 
-.letters-note {
-  margin: 0.55rem 0 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
+.letters-because {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.letters-legend {
+  margin: 0.7rem 0 0;
+  font-size: 0.75rem;
   color: var(--ink-soft);
 }
 
@@ -1141,6 +1174,65 @@ button:active {
 .dict-help b {
   color: var(--ink);
   font-family: ui-monospace, "Cascadia Mono", monospace;
+}
+
+/* Pastilles de longueur : assez grandes pour etre visees sans precision, et
+   assez contrastees une fois choisies pour qu'on n'oublie pas qu'un filtre est
+   en place. */
+.dict-lengths {
+  margin-top: 0.7rem;
+}
+
+.dict-lengths-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+.dict-length-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.dict-length {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  min-width: 2.1rem;
+  padding: 0.3rem 0.55rem;
+  border: 2px solid rgba(90, 70, 45, 0.25);
+  border-radius: 8px;
+  background: var(--parchment);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dict-length:hover {
+  border-color: var(--green);
+  background: #dceee6;
+}
+
+.dict-length.active {
+  background: var(--green);
+  border-color: var(--green-dark);
+  color: #fff;
+}
+
+.dict-length:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.dict-note {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 4px solid var(--gold);
+  background: var(--parchment);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
 
 .verdict {

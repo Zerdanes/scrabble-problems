@@ -49,9 +49,9 @@ const el = {
   hints: $('hints'),
   hintsCard: $('hints-card'),
   lettersCard: $('letters-card'),
-  lettersCell: $('letters-cell'),
-  lettersList: $('letters-list'),
-  lettersNote: $('letters-note'),
+  lettersTitle: $('letters-title'),
+  lettersH: $('letters-h'),
+  lettersV: $('letters-v'),
   attempts: $('attempts'),
   loading: $('loading'),
   loadingText: $('loading-text'),
@@ -66,6 +66,7 @@ const el = {
   definition: $('definition'),
   doneDefinition: $('done-definition'),
   dictResults: $('dict-results'),
+  dictLengths: $('dict-lengths'),
   dictCount: $('dict-count'),
   overlayBlank: $('overlay-blank'),
   alphabet: $('alphabet'),
@@ -595,35 +596,38 @@ async function updateLetters() {
   const result = await call('letters', {
     board: puzzle.board,
     cell: cursor.cell,
-    dir: cursor.dir,
     rack: puzzle.rack,
   });
   if (token !== lettersToken || !cursor) return;
 
   el.lettersCard.classList.remove('hidden');
-  el.lettersCell.textContent = `Case ${cellName(cursor.cell)}, en écrivant ${
-    cursor.dir === 0 ? 'horizontalement' : 'verticalement'
-  }`;
+  el.lettersTitle.textContent = `Lettres possibles en ${cellName(cursor.cell)}`;
+  renderDirection(el.lettersH, '▸ à l’horizontale', result.horizontal, result.joker);
+  renderDirection(el.lettersV, '▾ à la verticale', result.vertical, result.joker);
+}
 
-  if (result.free) {
-    el.lettersList.innerHTML = '';
-    el.lettersNote.textContent =
-      "Aucune lettre voisine dans l'autre sens : toutes vos lettres conviennent ici.";
-    return;
-  }
+/** Une des deux lignes de la carte : le sens, les lettres, et ce qui les contraint. */
+function renderDirection(target, label, info, joker) {
+  const inRack = new Set(info.inRack ?? []);
+  let body;
 
-  const jouables = result.playable ?? [];
-  el.lettersList.innerHTML = jouables
-    .map((letter) => `<span>${String.fromCharCode(65 + letter)}</span>`)
-    .join('');
-
-  if (!jouables.length) {
-    el.lettersNote.textContent = result.joker
-      ? `Aucune de vos lettres ne convient ici, à cause du mot ${result.around}. Seul le joker peut passer.`
-      : `Aucune de vos lettres ne convient ici : elles formeraient un mot faux avec ${result.around}.`;
+  if (info.free) {
+    body = "<em>toutes les lettres conviennent</em> — aucun mot ne se forme dans l’autre sens.";
+  } else if (!info.letters.length) {
+    body = `<em>aucune lettre ne convient</em> — rien ne fait un mot avec ${info.around}.${
+      joker ? ' Même le joker est bloqué.' : ''
+    }`;
   } else {
-    el.lettersNote.textContent = `Les autres formeraient un mot faux avec ${result.around}.`;
+    const chips = info.letters
+      .map(
+        (letter) =>
+          `<span class="${inRack.has(letter) ? 'has' : ''}">${String.fromCharCode(65 + letter)}</span>`
+      )
+      .join('');
+    body = `<div class="letters-list">${chips}</div><span class="letters-because">à cause de ${info.around}</span>`;
   }
+
+  target.innerHTML = `<span class="letters-dir-label">${label}</span>${body}`;
 }
 
 async function updatePreview() {
@@ -1058,26 +1062,79 @@ async function showDefinition(target, word) {
     .join('');
 }
 
+/**
+ * Longueur exigee des mots trouves, `null` pour toutes.
+ *
+ * Des pastilles plutot que deux champs "de … a …" : un chiffre a viser du doigt
+ * demande moins que de comprendre un intervalle, et il n'y a rien a taper ni a
+ * valider. Le choix suit les recherches enchainees — on cherche rarement des
+ * mots de sept lettres une seule fois — mais repart a zero a l'ouverture, pour
+ * qu'un filtre oublie ne fasse jamais croire qu'un mot n'existe pas.
+ */
+let dictLength = null;
+
+const LENGTH_CHOICES = [null, ...Array.from({ length: 14 }, (unused, index) => index + 2)];
+
+function buildDictLengths() {
+  for (const value of LENGTH_CHOICES) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'dict-length';
+    button.textContent = value == null ? 'Toutes' : String(value);
+    button.dataset.length = value == null ? '' : String(value);
+    if (value != null) button.title = `Seulement les mots de ${value} lettres`;
+    button.addEventListener('click', () => {
+      dictLength = value;
+      renderDictLengths();
+      // Le clavier reste le moyen principal de travailler : la saisie reprend
+      // la main aussitot, on peut enchainer sans toucher la souris.
+      el.dictInput.focus();
+      runLookup();
+    });
+    el.dictLengths.appendChild(button);
+  }
+  renderDictLengths();
+}
+
+function renderDictLengths() {
+  const active = dictLength == null ? '' : String(dictLength);
+  for (const button of el.dictLengths.children) {
+    const selected = button.dataset.length === active;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  }
+}
+
 function openDictionary() {
+  dictLength = null;
+  renderDictLengths();
   el.overlayDict.classList.remove('hidden');
   el.dictInput.focus();
   el.dictInput.select();
+  runLookup();
 }
 
 function closeDictionary() {
   el.overlayDict.classList.add('hidden');
 }
 
+const plural = (count) => (count > 1 ? 's' : '');
+
+let lookupToken = 0;
+
 async function runLookup() {
   const query = el.dictInput.value.trim();
+  const token = ++lookupToken;
   if (!query) {
     el.dictVerdict.classList.add('hidden');
     el.dictResults.innerHTML = '';
     return;
   }
 
-  const result = await call('lookup', { query });
-  if (el.dictInput.value.trim().toUpperCase().replace(/[^A-Z?*]/g, '') !== result.query) return;
+  const result = await call('lookup', { query, length: dictLength });
+  // Une recherche plus recente est partie entre-temps (frappe ou changement de
+  // longueur) : son resultat fait foi.
+  if (token !== lookupToken) return;
 
   if (result.valid === true) showDefinition(el.definition, result.query);
   else {
@@ -1094,20 +1151,45 @@ async function runLookup() {
       : `✗ ${result.query} n’existe pas dans le dictionnaire`;
   }
 
+  // « de 7 lettres » figure dans chaque titre : le filtre reste visible plus haut,
+  // mais c'est la liste que l'on regarde, et une liste courte sans explication se
+  // lit comme un dictionnaire pauvre.
+  const taille = result.length ? ` de ${result.length} lettres` : '';
   const groups = [];
-  if (result.matches.length) {
-    groups.push({ title: `${result.matches.length} mot(s) correspondant au motif`, words: result.matches });
-  }
-  if (result.anagrams.length) {
+  if (result.valid === null) {
     groups.push({
-      title: `${result.anagrams.length} mot(s) composables avec ces lettres`,
-      words: result.anagrams.slice(0, 300),
+      title: result.matches.length
+        ? `${result.matches.length} mot${plural(result.matches.length)}${taille} correspondant au motif`
+        : `Aucun mot${taille} ne correspond au motif`,
+      words: result.matches,
+      capped: result.matchesCapped,
+      cap: result.caps.matches,
+    });
+  }
+  if (result.anagrams.length || result.length) {
+    groups.push({
+      title: result.anagrams.length
+        ? `${result.anagrams.length} mot${plural(result.anagrams.length)}${taille} composable${plural(
+            result.anagrams.length
+          )} avec ces lettres`
+        : `Aucun mot${taille} composable avec ces lettres`,
+      words: result.anagrams,
+      capped: result.anagramsCapped,
+      cap: result.caps.anagrams,
     });
   }
 
+  // On ne laisse jamais croire qu'une liste tronquee est complete.
+  const cappedNote = (group) =>
+    group.capped
+      ? `<p class="dict-note">Plus de ${group.cap} mots trouvés : la liste ci-dessous est incomplète.${
+          result.length ? ' Précisez votre recherche.' : ' Choisissez une longueur, ou précisez votre recherche.'
+        }</p>`
+      : '';
+
   el.dictResults.innerHTML = groups
     .map(
-      (group) => `<div class="dict-group"><h3>${group.title}</h3><div class="words">${group.words
+      (group) => `<div class="dict-group"><h3>${group.title}</h3>${cappedNote(group)}<div class="words">${group.words
         .map((word) => `<span class="${word.length >= 7 ? 'strong' : ''}">${word}</span>`)
         .join('')}</div></div>`
     )
@@ -1305,6 +1387,7 @@ setInterval(heartbeat, 6000);
 
   buildBoard();
   buildAlphabet();
+  buildDictLengths();
   await Promise.all([restore(), call('init'), loadManifest()]);
   renderHome();
   show('home');

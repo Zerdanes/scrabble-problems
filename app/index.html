@@ -193,6 +193,11 @@
             <li><b>PORT*</b> — tous les mots qui commencent par PORT</li>
           </ul>
           <p>
+            Les pastilles <b>2, 3, 4…</b> sous la recherche ne gardent que les
+            mots de cette longueur. Pratique quand on cherche exactement de quoi
+            remplir une place précise sur la grille.
+          </p>
+          <p>
             Dans tous les cas, il affiche aussi la liste des mots que l'on peut
             composer avec ces lettres. <b>Cliquez sur l'un d'eux</b> pour le
             chercher à son tour.
@@ -264,10 +269,12 @@
              celui-ci jusqu'a le faire defiler. -->
         <aside class="side">
           <div class="letters-card hidden" id="letters-card">
-            <h3>Lettres possibles ici</h3>
-            <div class="letters-cell" id="letters-cell"></div>
-            <div class="letters-list" id="letters-list"></div>
-            <p class="letters-note" id="letters-note"></p>
+            <h3 id="letters-title">Lettres possibles</h3>
+            <div class="letters-dir" id="letters-h"></div>
+            <div class="letters-dir" id="letters-v"></div>
+            <p class="letters-legend">
+              Les lettres <b>en clair</b> sont dans votre tirage.
+            </p>
           </div>
 
           <div class="hints-card hidden" id="hints-card">
@@ -358,6 +365,11 @@
           <b>BONJOUR</b> vérifie un mot · <b>C?AT</b> remplace une lettre ·
           <b>PORT*</b> cherche les rallonges
         </p>
+
+        <div class="dict-lengths">
+          <span class="dict-lengths-label">Longueur des mots trouvés :</span>
+          <div class="dict-length-buttons" id="dict-lengths" role="group" aria-label="Longueur des mots trouvés"></div>
+        </div>
 
         <div class="verdict hidden" id="dict-verdict"></div>
         <div class="definition hidden" id="definition"></div>

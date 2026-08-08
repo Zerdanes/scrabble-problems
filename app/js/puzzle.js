@@ -255,15 +255,30 @@ const cellName = (cell) => `${String.fromCharCode(65 + (cell % SIZE))}${Math.flo
 const HINT_POOL = [
   // --- palier 1 : de quoi il s'agit ---------------------------------------
   { tier: 0, make: (p) => `Le meilleur coup pose ${p.solution.tiles.length} jeton${p.solution.tiles.length > 1 ? 's' : ''}.` },
-  { tier: 0, make: (p) => (p.solution.isCommon ? "C'est un mot que tout le monde connait." : "C'est un mot rare : ne cherchez pas du cote du langage courant.") },
+  {
+    tier: 0,
+    make: (p) =>
+      p.solution.isCommon
+        ? "C'est un mot que tout le monde connaît."
+        : "C'est un mot rare : ne cherchez pas du côté du langage courant.",
+  },
   {
     tier: 0,
     make: (p) => {
       const restantes = p.rack.length - p.solution.tiles.length;
-      return restantes > 0 ? `${restantes} lettre${restantes > 1 ? 's' : ''} du tirage ne sert${restantes > 1 ? 'ent' : ''} pas.` : 'Les sept lettres du tirage y passent.';
+      if (restantes === 0) return 'Les sept lettres du tirage y passent.';
+      return restantes > 1
+        ? `${restantes} lettres du tirage ne servent pas.`
+        : 'Une lettre du tirage ne sert pas.';
     },
   },
-  { tier: 0, make: (p) => (p.solution.words > 1 ? `Le coup forme ${p.solution.words} mots d'un coup.` : "Le coup ne forme qu'un seul mot.") },
+  {
+    tier: 0,
+    make: (p) =>
+      p.solution.words > 1
+        ? `Le coup forme ${p.solution.words} mots à la fois.`
+        : "Le coup ne forme qu'un seul mot.",
+  },
 
   // --- palier 2 : sa forme -------------------------------------------------
   { tier: 1, make: (p) => `Le meilleur coup rapporte ${p.target} points.` },
@@ -274,7 +289,10 @@ const HINT_POOL = [
     make: (p) => {
       const posees = p.solution.tiles.length;
       const empruntees = p.solution.word.length - posees;
-      return empruntees > 0 ? `Le mot s'appuie sur ${empruntees} lettre${empruntees > 1 ? 's' : ''} deja sur la grille.` : null;
+      if (empruntees <= 0) return null;
+      return empruntees > 1
+        ? `Le mot s'appuie sur ${empruntees} lettres déjà sur la grille.`
+        : "Le mot s'appuie sur une lettre déjà sur la grille.";
     },
   },
 
@@ -291,19 +309,19 @@ const HINT_POOL = [
     tier: 2,
     make: (p) =>
       p.solution.dir === 0
-        ? `Tout se joue sur la rangee ${Math.floor(p.solution.start / SIZE) + 1}.`
+        ? `Tout se joue sur la rangée ${Math.floor(p.solution.start / SIZE) + 1}.`
         : `Tout se joue sur la colonne ${String.fromCharCode(65 + (p.solution.start % SIZE))}.`,
   },
 
   // --- palier 4 : ses lettres ---------------------------------------------
-  { tier: 3, make: (p) => `Sa premiere lettre est un ${p.solution.word[0]}.` },
-  { tier: 3, make: (p) => `Sa derniere lettre est un ${p.solution.word[p.solution.word.length - 1]}.` },
+  { tier: 3, make: (p) => `Sa première lettre est un ${p.solution.word[0]}.` },
+  { tier: 3, make: (p) => `Sa dernière lettre est un ${p.solution.word[p.solution.word.length - 1]}.` },
   {
     tier: 3,
     make: (p) => {
       const chere = p.solution.tiles.filter((t) => !t.blank).sort((a, b) => LETTER_VALUES[b.letter] - LETTER_VALUES[a.letter])[0];
       return chere && LETTER_VALUES[chere.letter] >= 3
-        ? `Le ${String.fromCharCode(65 + chere.letter)} de votre tirage est utilise.`
+        ? `Le ${String.fromCharCode(65 + chere.letter)} de votre tirage est utilisé.`
         : null;
     },
   },

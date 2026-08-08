@@ -177,7 +177,11 @@ mots de l'ODS restent jouables à tout moment, à tous les niveaux**. Aucun mot 
   - `BONJOUR` → le mot est-il valable ?
   - `C?AT` → un `?` remplace une lettre
   - `PORT*` → toutes les rallonges de PORT
-  - dans tous les cas, la liste des mots composables avec ces lettres, cliquables.
+  - dans tous les cas, la liste des mots composables avec ces lettres, cliquables
+  - des pastilles **2 à 15** filtrent par longueur de mot. Le filtre descend
+    jusqu'au parcours du dictionnaire : le plafonner à l'affichage n'aurait
+    montré que les mots de la bonne longueur *parmi les 300 premiers trouvés*,
+    et non les 300 premiers de la bonne longueur.
 - **Définitions** — pour tout mot valable, et pour le mot solution à la fin de
   chaque problème. Voir plus bas.
 - **Voir la solution** — affiche le meilleur coup sur la grille, et les suivants.

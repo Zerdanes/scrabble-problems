@@ -84,28 +84,41 @@ export class Dawg {
   /**
    * Mots correspondant a un motif : lettres litterales, `?` pour une lettre
    * quelconque, `*` pour une suite quelconque (eventuellement vide).
+   *
+   * `length` ne garde que les mots de cette longueur exacte. Le tri se fait
+   * pendant la descente et non sur le resultat : `limit` serait sinon atteint par
+   * des mots que l'on jette ensuite, et les mots de la bonne longueur qui suivent
+   * ne seraient jamais vus.
    */
-  match(pattern, limit = 200) {
+  match(pattern, limit = 200, { length = null } = {}) {
     const results = [];
     const chars = [...pattern.toUpperCase()];
+
+    // Lettres qu'il reste obligatoirement a poser depuis chaque position du
+    // motif : au-dela de la longueur demandee, la branche ne peut plus aboutir.
+    const need = new Array(chars.length + 1).fill(0);
+    for (let i = chars.length - 1; i >= 0; i--) need[i] = need[i + 1] + (chars[i] === '*' ? 0 : 1);
+
+    const keep = (word) => word.length >= 2 && (length == null || word.length === length);
 
     const walk = (node, index, prefix) => {
       if (results.length >= limit) return;
       if (index === chars.length) return;
+      if (length != null && prefix.length + need[index] > length) return;
 
       const token = chars[index];
       const last = index === chars.length - 1;
 
       const consume = (edge, letter) => {
         const word = prefix + String.fromCharCode(A_CODE + letter);
-        if (last && this.isWord(edge) && word.length >= 2) results.push(word);
+        if (last && this.isWord(edge) && keep(word)) results.push(word);
         if (!last) walk(this.target(edge), index + 1, word);
       };
 
       if (token === '*') {
         // Soit on ne consomme rien, soit on avale une lettre et on reste sur `*`.
         if (last) {
-          this.collect(node, prefix, results, limit);
+          this.collect(node, prefix, results, limit, length);
         } else {
           walk(node, index + 1, prefix);
           for (let edge = node; node >= 0; edge++) {
@@ -136,12 +149,13 @@ export class Dawg {
   }
 
   /** Tous les mots atteignables depuis `node`, prefixes par `prefix`. */
-  collect(node, prefix, results, limit) {
+  collect(node, prefix, results, limit, length = null) {
     if (node < 0 || results.length >= limit) return;
+    if (length != null && prefix.length >= length) return; // deja trop long
     for (let edge = node; ; edge++) {
       const word = prefix + String.fromCharCode(A_CODE + this.letter(edge));
-      if (this.isWord(edge) && word.length >= 2) results.push(word);
-      if (results.length < limit) this.collect(this.target(edge), word, results, limit);
+      if (this.isWord(edge) && word.length >= 2 && (length == null || word.length === length)) results.push(word);
+      if (results.length < limit) this.collect(this.target(edge), word, results, limit, length);
       if (this.isLast(edge)) break;
     }
   }
@@ -150,8 +164,12 @@ export class Dawg {
    * Mots composables avec un tirage. `letters` est une chaine ou `?` represente
    * un joker. Si `required` est fourni, le mot doit aussi contenir ces lettres
    * (elles sont supposees deja sur la grille, donc gratuites).
+   *
+   * `length` ne garde que les mots de cette longueur exacte, en coupant la
+   * descente des que la longueur est atteinte : filtrer apres coup ferait buter
+   * `limit` sur des mots de longueur non demandee.
    */
-  anagrams(letters, { limit = 300, minLength = 2 } = {}) {
+  anagrams(letters, { limit = 300, minLength = 2, length = null } = {}) {
     const counts = new Int8Array(27); // 26 = joker
     for (const char of letters.toUpperCase()) {
       if (char === '?' || char === ' ') counts[26]++;
@@ -170,8 +188,10 @@ export class Dawg {
         if (usable >= 0) {
           counts[usable]--;
           const word = prefix + String.fromCharCode(A_CODE + letter);
-          if (this.isWord(edge) && word.length >= minLength) results.push(word);
-          walk(this.target(edge), word);
+          if (this.isWord(edge) && word.length >= minLength && (length == null || word.length === length)) {
+            results.push(word);
+          }
+          if (length == null || word.length < length) walk(this.target(edge), word);
           counts[usable]++;
         }
         if (this.isLast(edge)) break;

@@ -378,19 +378,19 @@ export function applyMove(board, move) {
  * Renvoie { ok, score, words } ou { ok:false, error }.
  */
 export function scorePlacement(dawg, board, placements) {
-  if (!placements.length) return { ok: false, error: 'Aucun jeton pose.' };
+  if (!placements.length) return { ok: false, error: 'Aucun jeton posé.' };
 
   const { letters, blanks } = board;
   const rows = placements.map((tile) => Math.floor(tile.cell / SIZE));
   const cols = placements.map((tile) => tile.cell % SIZE);
   const sameRow = rows.every((row) => row === rows[0]);
   const sameCol = cols.every((col) => col === cols[0]);
-  if (!sameRow && !sameCol) return { ok: false, error: 'Les jetons doivent etre alignes.' };
+  if (!sameRow && !sameCol) return { ok: false, error: 'Les jetons doivent être alignés.' };
 
   // Grille temporaire incluant les jetons proposes.
   const temp = { letters: Int8Array.from(letters), blanks: Uint8Array.from(blanks) };
   for (const tile of placements) {
-    if (letters[tile.cell] !== EMPTY) return { ok: false, error: 'Case deja occupee.' };
+    if (letters[tile.cell] !== EMPTY) return { ok: false, error: 'Case déjà occupée.' };
     temp.letters[tile.cell] = tile.letter;
     temp.blanks[tile.cell] = tile.blank ? 1 : 0;
   }
@@ -403,7 +403,7 @@ export function scorePlacement(dawg, board, placements) {
 
   // Contiguite le long de la direction principale.
   for (let pos = positions[0]; pos <= positions[positions.length - 1]; pos++) {
-    if (temp.letters[at(line, pos)] === EMPTY) return { ok: false, error: 'Le mot doit etre continu.' };
+    if (temp.letters[at(line, pos)] === EMPTY) return { ok: false, error: 'Le mot doit être continu.' };
   }
 
   // Connexion au reste de la grille (ou passage par le centre au premier coup).
@@ -422,7 +422,7 @@ export function scorePlacement(dawg, board, placements) {
         (col < SIZE - 1 && letters[tile.cell + 1] !== EMPTY)
       );
     });
-    if (!connected) return { ok: false, error: 'Le mot doit toucher un jeton deja pose.' };
+    if (!connected) return { ok: false, error: 'Le mot doit toucher un jeton déjà posé.' };
   }
 
   const placedCells = new Set(placements.map((tile) => tile.cell));
